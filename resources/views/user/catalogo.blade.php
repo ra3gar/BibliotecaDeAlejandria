@@ -77,8 +77,9 @@
         @else
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             @foreach($categories as $category)
-            <div class="bg-stone-100 hover:bg-amber-50 border border-stone-200 hover:border-amber-300
-                        rounded-xl p-4 text-center cursor-pointer transition group">
+            <a href="{{ route('catalogo.categoria', $category) }}"
+               class="block bg-stone-100 hover:bg-amber-50 border border-stone-200 hover:border-amber-300
+                      rounded-xl p-4 text-center transition group">
                 <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-2">
                     <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -89,7 +90,7 @@
                     {{ $category->name }}
                 </p>
                 <p class="text-xs text-gray-400 mt-0.5">{{ $category->books_count }} libros</p>
-            </div>
+            </a>
             @endforeach
         </div>
         @endif
@@ -106,7 +107,8 @@
         @else
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             @foreach($authors as $author)
-            <div class="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3 hover:border-amber-300 hover:shadow-sm transition cursor-pointer group">
+            <a href="{{ route('catalogo.autor', $author) }}"
+               class="flex bg-white rounded-xl border border-gray-200 p-4 items-center gap-3 hover:border-amber-300 hover:shadow-sm transition group">
                 <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-amber-400 font-bold text-sm flex-shrink-0">
                     {{ strtoupper(substr($author->first_name, 0, 1)) }}
                 </div>
@@ -116,7 +118,7 @@
                     </p>
                     <p class="text-xs text-gray-400">{{ $author->books_count }} {{ Str::plural('libro', $author->books_count) }}</p>
                 </div>
-            </div>
+            </a>
             @endforeach
         </div>
         @endif

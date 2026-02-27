@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AuthorController;
 use App\Http\Controllers\Admin\BookController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\LoanController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\User\CatalogoController;
 use App\Http\Controllers\User\ProfileController;
@@ -30,11 +31,15 @@ Route::middleware('auth')->group(function () {
         Route::resource('books',      BookController::class);
         Route::resource('categories', CategoryController::class);
         Route::resource('authors',    AuthorController::class);
+        Route::resource('loans',      LoanController::class)->only(['index', 'show', 'destroy']);
+        Route::patch('loans/{loan}/return', [LoanController::class, 'markReturned'])->name('loans.return');
     });
 
     // User
     Route::middleware('role:user')->group(function () {
         Route::get('/catalogo', [CatalogoController::class, 'index'])->name('catalogo');
+        Route::get('/catalogo/categoria/{category}', [CatalogoController::class, 'byCategory'])->name('catalogo.categoria');
+        Route::get('/catalogo/autor/{author}', [CatalogoController::class, 'byAuthor'])->name('catalogo.autor');
         Route::get('/libros/{book}', [CatalogoController::class, 'show'])->name('books.show');
         Route::get('/perfil', [ProfileController::class, 'index'])->name('profile');
     });
