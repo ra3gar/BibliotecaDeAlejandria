@@ -9,6 +9,9 @@ Universidad UPED 2026 — Programación Aplicada 1. A library management system 
 ## Commands
 
 ```bash
+# First-time setup (install deps, generate key, migrate, build assets)
+composer setup
+
 # Start full dev environment (server + queue + logs + vite)
 composer dev
 
@@ -33,7 +36,7 @@ php artisan migrate:fresh --seed
 
 ## Stack
 
-- **PHP** ^8.2, **Laravel** 12, **SQLite** (default)
+- **PHP** ^8.2, **Laravel** 12, **SQLite** (default for local dev)
 - **Testing**: PHPUnit ^11.5.3 via `php artisan test` (in-memory SQLite, BCRYPT_ROUNDS=4)
 - **Frontend**: Vite 7 + Tailwind CSS v4
 - **Code style**: Laravel Pint
@@ -52,35 +55,41 @@ DB_PASSWORD=your_password
 
 ## Architecture
 
-Laravel 12 standard structure. Key conventions for this project:
+Laravel 12 standard MVC. Controllers are split into `Admin/` and `User/` namespaces under `app/Http/Controllers/`.
 
 **Auth & Users**
-- Custom `usuarios` table with PK `id_usuario` INT and `contrasena` password field
-- Roles: `usuario` | `administrador`
-- Auth guard uses `App\Models\Usuario` (not the default `User`)
+- Table: `book_store_users` with standard auto-increment `id`
+- Model: `App\Models\User` (not a custom model name — standard User with `$table = 'book_store_users'`)
+- Fields: `first_name`, `last_name`, `email`, `password`, `role`
+- Roles: `admin` | `user` (enum)
+- Helper: `$user->isAdmin()`, accessor `$user->full_name`
 - Role middleware alias `role` → `App\Http\Middleware\CheckRole`, registered in `bootstrap/app.php`
+- `CheckRole` redirects wrong-role users to their correct home (admin→dashboard, user→catalogo)
 
-**Domain Models** (planned, PK types noted)
-- `Categoria` — PK `id_categoria` VARCHAR
-- `Autor` — PK `id_autor` INT
-- `Libro` — PK `id_libro` VARCHAR
-- `Usuario` — PK `id_usuario` INT
-- `Prestamo` — PK `id_prestamo`
-- `libro_autor` — pivot table
+**Domain Models**
+- `User` — `book_store_users`, standard PK `id`
+- `Category` — `categories`, standard PK `id`
+- `Author` — `authors`, standard PK `id`
+- `Book` — `books`, standard PK `id`; book cover images stored via `Storage::disk('public')` in `books/` folder
+- `Loan` — `loans`, standard PK `id`; `status` enum: `active` | `returned` | `overdue`
+- `book_author` — pivot table linking books ↔ authors (managed via `$book->authors()->sync()`)
 
 **Routes**
 - `GET /` → redirect to login
-- `GET|POST /login` → `AuthController`
+- `GET|POST /login` → `AuthController` (guest middleware)
 - `POST /logout`
-- `GET /catalogo` → role:usuario middleware
-- `GET /dashboard` → role:administrador middleware
-
-**Fortify** (when installed): set `features=[]` and `views=false` to avoid route conflicts with custom auth.
+- Admin group (`auth` + `role:admin` + prefix `/admin` + name prefix `admin.`):
+  - `GET /admin/dashboard` → `Admin\DashboardController`
+  - Resources: `admin.users`, `admin.books`, `admin.categories`, `admin.authors`
+- User group (`auth` + `role:user`):
+  - `GET /catalogo` → `User\CatalogoController@index`
+  - `GET /libros/{book}` → `User\CatalogoController@show` (named `books.show`)
+  - `GET /perfil` → `User\ProfileController@index`
 
 ## Testing
 
 Tests live in `tests/Feature/` and `tests/Unit/`. The test environment uses an in-memory SQLite DB — no `.env` changes needed to run tests.
 
 Seed test users via `DatabaseSeeder`:
-- `admin@uped.edu` / `admin123` → rol: administrador
-- `juan@uped.edu` / `usuario123` → rol: usuario
+- `admin@biblioteca.com` / `password` → role: admin
+- `juan@biblioteca.com` / `password` → role: user

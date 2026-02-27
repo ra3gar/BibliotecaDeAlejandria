@@ -1,59 +1,127 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Biblioteca de Alejandría
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema de gestión de biblioteca desarrollado como proyecto universitario para la materia **Programación Aplicada 1** — Universidad UPED 2026.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Tecnologías utilizadas
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+| Tecnología | Versión | Descripción |
+|---|---|---|
+| **PHP** | ^8.2 | Lenguaje de programación del backend |
+| **Laravel** | 12 | Framework principal del proyecto (MVC, ORM, rutas, middleware) |
+| **Blade** | — | Motor de plantillas de Laravel para las vistas |
+| **SQLite** | — | Base de datos por defecto para desarrollo y pruebas |
+| **MySQL** | — | Base de datos opcional para producción (configurable en `.env`) |
+| **Tailwind CSS** | v4 | Framework de estilos utilitarios para el frontend |
+| **Vite** | 7 | Herramienta de bundling y compilación de activos frontend |
+| **PHPUnit** | ^11.5 | Framework de pruebas automatizadas |
+| **Laravel Pint** | — | Herramienta de formato y estilo de código PHP |
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Estructura del proyecto
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+```
+BibliotecaDeAlejandria/
+│
+├── app/                        # Código principal de la aplicación
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Admin/          # Controladores del panel de administrador
+│   │   │   │   ├── DashboardController.php
+│   │   │   │   ├── BookController.php
+│   │   │   │   ├── CategoryController.php
+│   │   │   │   ├── AuthorController.php
+│   │   │   │   └── UserController.php
+│   │   │   ├── User/           # Controladores del área de usuario
+│   │   │   │   ├── CatalogoController.php
+│   │   │   │   └── ProfileController.php
+│   │   │   └── AuthController.php   # Login y logout
+│   │   └── Middleware/
+│   │       └── CheckRole.php   # Middleware de verificación de rol (admin|user)
+│   └── Models/                 # Modelos Eloquent
+│       ├── User.php
+│       ├── Book.php
+│       ├── Category.php
+│       ├── Author.php
+│       └── Loan.php
+│
+├── bootstrap/
+│   └── app.php                 # Configuración de la aplicación y registro de middleware
+│
+├── database/
+│   ├── migrations/             # Migraciones de base de datos
+│   └── seeders/
+│       └── DatabaseSeeder.php  # Datos iniciales (usuarios de prueba)
+│
+├── public/
+│   └── index.php               # Punto de entrada de la aplicación web
+│
+├── resources/
+│   ├── views/                  # Plantillas Blade
+│   │   ├── layouts/            # Layouts base (admin.blade.php, app.blade.php)
+│   │   ├── auth/               # Vista de login
+│   │   ├── admin/              # Vistas del panel administrador
+│   │   └── user/               # Vistas del área de usuario (catálogo, detalle, perfil)
+│   ├── css/
+│   │   └── app.css             # Estilos con Tailwind CSS
+│   └── js/
+│       └── app.js              # JavaScript principal
+│
+├── routes/
+│   └── web.php                 # Definición de todas las rutas de la aplicación
+│
+├── storage/
+│   └── app/public/books/       # Imágenes de portada de libros subidas
+│
+├── tests/
+│   ├── Feature/                # Pruebas de integración
+│   └── Unit/                   # Pruebas unitarias
+│
+├── vite.config.js              # Configuración de Vite
+└── composer.json               # Dependencias PHP
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## Instalación y puesta en marcha
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+# 1. Instalar dependencias, generar clave y migrar la base de datos
+composer setup
 
-### Premium Partners
+# 2. Iniciar el entorno de desarrollo completo (servidor + vite + logs + cola)
+composer dev
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
 
-## Contributing
+###########################################################################
+##          >>NOTA: Programas necesarios para el funcionamiento:<<  
+###########################################################################
+#   Lista de programas:
+-VSCODE
+-COMPOSER
+-LARAVEL 12
+-GIT
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+#     Terminal 1:
+npm run build
+#     Terminal 2:
+php artisan serve 
 
-## Code of Conduct
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Usuarios de prueba (seeder)
 
-## Security Vulnerabilities
+| Email | Contraseña | Rol |
+|---|---|---|
+| admin@biblioteca.com | password | a123 |
+| juan@biblioteca.com | password | juan123 |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+Acceder en el navegador a: `http://localhost:8000`
+
+
+```
