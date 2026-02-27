@@ -84,18 +84,6 @@ BibliotecaDeAlejandria/
 ```
 
 ---
-
-## Instalación y puesta en marcha
-
-```bash
-# 1. Instalar dependencias, generar clave y migrar la base de datos
-composer setup
-
-# 2. Iniciar el entorno de desarrollo completo (servidor + vite + logs + cola)
-composer dev
-```
-
-
 ###########################################################################
 ##          >>NOTA: Programas necesarios para el funcionamiento:<<  
 ###########################################################################
@@ -106,9 +94,13 @@ composer dev
 -GIT
 
 #     Terminal 1:
-npm run build
+npm run build (Dejalo corriendo no cerrar terminal)
 #     Terminal 2:
 php artisan serve 
+
+
+
+Acceder en el navegador a: `http://localhost:8000`
 
 
 ### Usuarios de prueba (seeder)
@@ -119,9 +111,13 @@ php artisan serve
 | juan@biblioteca.com | password | juan123 |
 
 
-
-
-Acceder en el navegador a: `http://localhost:8000`
-
-
+  ┌─────────────┬──────────────────────────┐                                                                                                                             
+  │  Propiedad  │          Valor           │                                                                                                               ├─────────────┼──────────────────────────┤                                                                                                                        
+  │ Formatos    │ jpg, jpeg, png, webp     │
+  ├─────────────┼──────────────────────────┤
+  │ Peso máximo │ 2048 KB (2 MB)           │
+  ├─────────────┼──────────────────────────┤
+  │ Dimensiones │ mínimo 300×400 px,       │
+  │             │ máximo 400×500 px        │
+  └─────────────┴──────────────────────────┘
 ```

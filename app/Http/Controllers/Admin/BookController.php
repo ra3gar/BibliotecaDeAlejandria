@@ -35,7 +35,7 @@ class BookController extends Controller
             'publisher'    => ['nullable', 'string', 'max:150'],
             'category_id'  => ['nullable', 'exists:categories,id'],
             'published_at' => ['nullable', 'date'],
-            'book_cover'   => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'book_cover'   => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:min_width=300,min_height=400,max_width=400,max_height=500'],
             'authors'      => ['nullable', 'array'],
             'authors.*'    => ['exists:authors,id'],
         ]);
@@ -70,7 +70,7 @@ class BookController extends Controller
             'publisher'    => ['nullable', 'string', 'max:150'],
             'category_id'  => ['nullable', 'exists:categories,id'],
             'published_at' => ['nullable', 'date'],
-            'book_cover'   => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'book_cover'   => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:min_width=300,min_height=400,max_width=400,max_height=500'],
             'authors'      => ['nullable', 'array'],
             'authors.*'    => ['exists:authors,id'],
         ]);

@@ -81,7 +81,7 @@
         <input type="file" name="book_cover" accept="image/*"
                class="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
         @error('book_cover') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-        <p class="mt-1 text-xs text-gray-400">JPG, PNG o WebP. Máximo 2 MB.</p>
+        <p class="mt-1 text-xs text-gray-400">JPG, PNG o WebP. Máximo 2 MB. Dimensiones: mínimo 300×400 px, máximo 400×500 px.</p>
     </div>
 
 </div>
