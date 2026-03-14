@@ -158,6 +158,14 @@ $statusColors = [
                             <p class="font-mono text-gray-700 text-xs">{{ $loan->book->isbn ?? '—' }}</p>
                         </div>
 
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-0.5">Stock</p>
+                            <p class="text-sm text-gray-700">
+                                {{ $loan->book->available_copies }} disponible{{ $loan->book->available_copies !== 1 ? 's' : '' }}
+                                de {{ $loan->book->stock_total }} total{{ $loan->book->stock_total !== 1 ? 'es' : '' }}
+                            </p>
+                        </div>
+
                         <div class="col-span-2">
                             <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-1">Autores</p>
                             @if($loan->book->authors->isNotEmpty())

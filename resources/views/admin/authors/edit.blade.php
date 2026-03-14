@@ -14,7 +14,7 @@
     </div>
 
     <div class="bg-white rounded-xl shadow-sm p-6">
-        <form method="POST" action="{{ route('admin.authors.update', $author) }}">
+        <form method="POST" action="{{ route('admin.authors.update', $author) }}" enctype="multipart/form-data">
             @csrf @method('PUT')
             @include('admin.authors._form')
             <div class="flex items-center gap-3 mt-6 pt-5 border-t border-gray-100">

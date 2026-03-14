@@ -27,6 +27,7 @@
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">ISBN</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Categoría</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Autores</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Stock</th>
                 <th class="px-4 py-3"></th>
             </tr>
         </thead>
@@ -66,6 +67,17 @@
                     {{ $book->authors->pluck('full_name')->join(', ') ?: '—' }}
                 </td>
                 <td class="px-4 py-3">
+                    @if($book->available_copies > 0)
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                            {{ $book->available_copies }}/{{ $book->stock_total }}
+                        </span>
+                    @else
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                            Agotado
+                        </span>
+                    @endif
+                </td>
+                <td class="px-4 py-3">
                     <div class="flex items-center justify-end gap-2">
                         <a href="{{ route('admin.books.edit', $book) }}"
                            class="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition">
@@ -84,13 +96,14 @@
             </tr>
             @empty
             <tr>
-                <td colspan="6" class="px-4 py-10 text-center text-gray-400 text-sm">
+                <td colspan="7" class="px-4 py-10 text-center text-gray-400 text-sm">
                     No hay libros registrados.
                 </td>
             </tr>
             @endforelse
         </tbody>
     </table>
+    {{-- colspan actualizado a 7 por la nueva columna Stock --}}
 
     @if($books->hasPages())
     <div class="px-4 py-3 border-t border-gray-100">

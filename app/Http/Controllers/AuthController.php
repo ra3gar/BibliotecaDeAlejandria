@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +27,14 @@ class AuthController extends Controller
         ]);
 
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+            AuditLog::create([
+                'user_id'    => null,
+                'action'     => 'login_failed',
+                'model_type' => 'Auth',
+                'model_id'   => null,
+                'description' => 'Intento fallido de login para: ' . $credentials['email'] . ' desde IP: ' . $request->ip(),
+            ]);
+
             return back()->withErrors([
                 'email' => 'Las credenciales no coinciden con nuestros registros.',
             ])->onlyInput('email');

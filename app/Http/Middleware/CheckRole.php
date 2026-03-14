@@ -12,6 +12,15 @@ class CheckRole
     {
         $user = $request->user();
 
+        if (! $user->isActive()) {
+            auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')
+                ->withErrors(['email' => 'Tu cuenta ha sido desactivada. Contacta al administrador.']);
+        }
+
         if ($user->role !== $role) {
             return $user->isAdmin()
                 ? redirect()->route('admin.dashboard')

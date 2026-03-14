@@ -38,11 +38,24 @@
             <div class="flex-1 p-8">
 
                 {{-- Category badge --}}
-                @if($book->category)
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 mb-3">
-                    {{ $book->category->name }}
-                </span>
-                @endif
+                <div class="flex items-center gap-2 mb-3">
+                    @if($book->category)
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        {{ $book->category->name }}
+                    </span>
+                    @endif
+                    @if($book->isAvailable())
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                            Disponible ({{ $book->available_copies }} {{ $book->available_copies === 1 ? 'copia' : 'copias' }})
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                            Agotado
+                        </span>
+                    @endif
+                </div>
 
                 <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ $book->title }}</h1>
 
@@ -95,6 +108,45 @@
             </div>
         </div>
     </div>
+
+    {{-- Authors section --}}
+    @if($book->authors->isNotEmpty())
+    <div class="mt-6">
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            {{ $book->authors->count() === 1 ? 'Acerca del autor' : 'Acerca de los autores' }}
+        </h2>
+        <div class="space-y-4">
+            @foreach($book->authors as $author)
+            <div class="bg-white rounded-2xl shadow-sm p-5 flex gap-5">
+                {{-- Photo --}}
+                <div class="flex-shrink-0">
+                    @if($author->photo_url)
+                        <img src="{{ $author->photo_url }}"
+                             alt="{{ $author->full_name }}"
+                             class="w-16 h-16 rounded-full object-cover border border-gray-100">
+                    @else
+                        <div class="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center">
+                            <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                        </div>
+                    @endif
+                </div>
+                {{-- Info --}}
+                <div class="min-w-0">
+                    <p class="font-semibold text-gray-800 text-sm">{{ $author->full_name }}</p>
+                    @if($author->bio)
+                        <p class="mt-1 text-sm text-gray-600 leading-relaxed">{{ $author->bio }}</p>
+                    @else
+                        <p class="mt-1 text-xs text-gray-400 italic">Sin biografía disponible.</p>
+                    @endif
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 
     {{-- Back button --}}
     <div class="mt-6">

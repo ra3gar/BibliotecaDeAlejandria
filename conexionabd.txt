@@ -1,0 +1,61 @@
+====================================================================
+  CONFIGURACION DE BASE DE DATOS — BibliotecaDeAlejandria
+  Universidad UPED 2026 | Programación Aplicada 1
+====================================================================
+
+Motor         : MySQL
+Host          : 127.0.0.1
+Puerto        : 3306
+Base de datos : biblioteca_alejandria
+Usuario       : root
+Contraseña    : (configurada en .env — dejar vacía si no tiene)
+
+--------------------------------------------------------------------
+VARIABLES EN .env
+--------------------------------------------------------------------
+
+    DB_CONNECTION=mysql
+    DB_HOST=127.0.0.1
+    DB_PORT=3306
+    DB_DATABASE=biblioteca_alejandria
+    DB_USERNAME=root
+    DB_PASSWORD=
+
+--------------------------------------------------------------------
+PASOS DE INSTALACIÓN
+--------------------------------------------------------------------
+
+1. Crear la base de datos en MySQL (solo la primera vez):
+
+       CREATE DATABASE biblioteca_alejandria
+         CHARACTER SET utf8mb4
+         COLLATE utf8mb4_unicode_ci;
+
+2. Configurar las variables DB_* en el archivo .env.
+
+3. Ejecutar migraciones y cargar datos de prueba:
+
+       php artisan migrate --seed
+
+4. Para reiniciar desde cero:
+
+       php artisan migrate:fresh --seed
+
+--------------------------------------------------------------------
+USUARIOS DE PRUEBA (seeder)
+--------------------------------------------------------------------
+
+    admin@biblioteca.com  |  password  |  rol: admin
+    juan@biblioteca.com   |  password  |  rol: user
+
+--------------------------------------------------------------------
+VERIFICAR CONEXIÓN
+--------------------------------------------------------------------
+
+    php artisan db
+
+Si abre una sesión interactiva de MySQL, la conexión es correcta.
+
+====================================================================
+  Ver GUIAS/ConexionaBD.txt para documentación técnica completa.
+====================================================================

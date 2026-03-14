@@ -20,10 +20,53 @@
             @error('isbn') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
         </div>
         <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Código interno</label>
+            <input type="text" name="codigo_interno"
+                   value="{{ old('codigo_interno', $book->codigo_interno ?? '') }}"
+                   placeholder="BIB-0001"
+                   class="w-full border rounded-lg px-3 py-2.5 text-sm font-mono text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 @error('codigo_interno') border-red-400 bg-red-50 @else border-gray-300 @enderror">
+            @error('codigo_interno') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            <p class="mt-1 text-xs text-gray-400">Identificador único interno de la biblioteca.</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Editorial</label>
             <input type="text" name="publisher"
                    value="{{ old('publisher', $book->publisher ?? '') }}"
                    class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Año de publicación</label>
+            <input type="number" name="año" min="1000" max="2100"
+                   value="{{ old('año', $book->año ?? '') }}"
+                   placeholder="{{ date('Y') }}"
+                   class="w-full border rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 @error('año') border-red-400 bg-red-50 @else border-gray-300 @enderror">
+            @error('año') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Ejemplares totales <span class="text-red-500">*</span>
+            </label>
+            <input type="number" name="stock_total" min="0"
+                   value="{{ old('stock_total', $book->stock_total ?? 0) }}"
+                   class="w-full border rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 @error('stock_total') border-red-400 bg-red-50 @else border-gray-300 @enderror">
+            @error('stock_total') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            <p class="mt-1 text-xs text-gray-400">Total de copias físicas en la biblioteca.</p>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Copias disponibles <span class="text-red-500">*</span>
+            </label>
+            <input type="number" name="available_copies" min="0"
+                   value="{{ old('available_copies', $book->available_copies ?? 0) }}"
+                   class="w-full border rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500 @error('available_copies') border-red-400 bg-red-50 @else border-gray-300 @enderror">
+            @error('available_copies') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            <p class="mt-1 text-xs text-gray-400">No puede superar el total de ejemplares.</p>
         </div>
     </div>
 
@@ -68,6 +111,16 @@
             @endforeach
         </select>
         <p class="mt-1 text-xs text-gray-400">Mantén Ctrl/Cmd para seleccionar varios.</p>
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Copia digital (PDF) — opcional</label>
+        <input type="text" name="path_pdf"
+               value="{{ old('path_pdf', $book->path_pdf ?? '') }}"
+               placeholder="https://ejemplo.com/libro.pdf o ruta local"
+               class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500">
+        @error('path_pdf') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+        <p class="mt-1 text-xs text-gray-400">URL o ruta al archivo PDF del libro, si aplica.</p>
     </div>
 
     <div>

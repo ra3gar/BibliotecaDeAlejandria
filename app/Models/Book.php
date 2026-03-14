@@ -12,18 +12,31 @@ class Book extends Model
     protected $fillable = [
         'title',
         'isbn',
+        'codigo_interno',
         'summary',
         'publisher',
         'category_id',
         'book_cover',
+        'path_pdf',
         'published_at',
+        'año',
+        'stock_total',
+        'available_copies',
     ];
 
     protected function casts(): array
     {
         return [
-            'published_at' => 'date',
+            'published_at'     => 'date',
+            'año'              => 'integer',
+            'stock_total'      => 'integer',
+            'available_copies' => 'integer',
         ];
+    }
+
+    public function isAvailable(): bool
+    {
+        return $this->available_copies > 0;
     }
 
     public function category(): BelongsTo
@@ -33,7 +46,7 @@ class Book extends Model
 
     public function authors(): BelongsToMany
     {
-        return $this->belongsToMany(Author::class);
+        return $this->belongsToMany(Author::class, 'book_author');
     }
 
     public function loans(): HasMany

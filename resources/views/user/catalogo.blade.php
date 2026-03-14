@@ -40,6 +40,19 @@
                             <p class="text-slate-400 text-xs mt-1 truncate">
                                 {{ $book->authors->pluck('full_name')->join(', ') ?: 'Autor desconocido' }}
                             </p>
+                            <div class="mt-2">
+                                @if($book->isAvailable())
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-500/20 text-green-300">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                                        Disponible
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-500/20 text-red-300">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                                        Agotado
+                                    </span>
+                                @endif
+                            </div>
                         </div>
                     </a>
                 </div>

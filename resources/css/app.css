@@ -9,3 +9,41 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+@layer base {
+    a,
+    button,
+    label,
+    select,
+    [role="button"],
+    input[type="button"],
+    input[type="submit"],
+    input[type="reset"],
+    input[type="file"],
+    input[type="checkbox"],
+    input[type="radio"] {
+        cursor: pointer;
+    }
+
+    input[type="file"]::file-selector-button {
+        cursor: pointer;
+    }
+
+    a:disabled,
+    button:disabled,
+    label:has(input:disabled),
+    select:disabled,
+    [role="button"]:disabled,
+    input[type="button"]:disabled,
+    input[type="submit"]:disabled,
+    input[type="reset"]:disabled,
+    input[type="file"]:disabled,
+    input[type="checkbox"]:disabled,
+    input[type="radio"]:disabled {
+        cursor: not-allowed;
+    }
+
+    input[type="file"]:disabled::file-selector-button {
+        cursor: not-allowed;
+    }
+}

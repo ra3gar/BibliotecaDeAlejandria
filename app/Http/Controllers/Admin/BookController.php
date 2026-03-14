@@ -29,15 +29,20 @@ class BookController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'title'        => ['required', 'string', 'max:255'],
-            'isbn'         => ['nullable', 'string', 'max:20', 'unique:books'],
-            'summary'      => ['nullable', 'string'],
-            'publisher'    => ['nullable', 'string', 'max:150'],
-            'category_id'  => ['nullable', 'exists:categories,id'],
-            'published_at' => ['nullable', 'date'],
-            'book_cover'   => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:min_width=300,min_height=400,max_width=400,max_height=500'],
-            'authors'      => ['nullable', 'array'],
-            'authors.*'    => ['exists:authors,id'],
+            'title'            => ['required', 'string', 'max:255'],
+            'isbn'             => ['nullable', 'string', 'max:20', 'unique:books'],
+            'codigo_interno'   => ['nullable', 'string', 'max:50', 'unique:books'],
+            'summary'          => ['nullable', 'string'],
+            'publisher'        => ['nullable', 'string', 'max:150'],
+            'category_id'      => ['nullable', 'exists:categories,id'],
+            'published_at'     => ['nullable', 'date'],
+            'año'              => ['nullable', 'integer', 'min:1000', 'max:2100'],
+            'stock_total'      => ['required', 'integer', 'min:0'],
+            'available_copies' => ['required', 'integer', 'min:0', 'lte:stock_total'],
+            'book_cover'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:min_width=300,min_height=400,max_width=400,max_height=500'],
+            'path_pdf'         => ['nullable', 'string', 'max:500'],
+            'authors'          => ['nullable', 'array'],
+            'authors.*'        => ['exists:authors,id'],
         ]);
 
         if ($request->hasFile('book_cover')) {
@@ -64,15 +69,20 @@ class BookController extends Controller
     public function update(Request $request, Book $book): RedirectResponse
     {
         $data = $request->validate([
-            'title'        => ['required', 'string', 'max:255'],
-            'isbn'         => ['nullable', 'string', 'max:20', 'unique:books,isbn,' . $book->id],
-            'summary'      => ['nullable', 'string'],
-            'publisher'    => ['nullable', 'string', 'max:150'],
-            'category_id'  => ['nullable', 'exists:categories,id'],
-            'published_at' => ['nullable', 'date'],
-            'book_cover'   => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:min_width=300,min_height=400,max_width=400,max_height=500'],
-            'authors'      => ['nullable', 'array'],
-            'authors.*'    => ['exists:authors,id'],
+            'title'            => ['required', 'string', 'max:255'],
+            'isbn'             => ['nullable', 'string', 'max:20', 'unique:books,isbn,' . $book->id],
+            'codigo_interno'   => ['nullable', 'string', 'max:50', 'unique:books,codigo_interno,' . $book->id],
+            'summary'          => ['nullable', 'string'],
+            'publisher'        => ['nullable', 'string', 'max:150'],
+            'category_id'      => ['nullable', 'exists:categories,id'],
+            'published_at'     => ['nullable', 'date'],
+            'año'              => ['nullable', 'integer', 'min:1000', 'max:2100'],
+            'stock_total'      => ['required', 'integer', 'min:0'],
+            'available_copies' => ['required', 'integer', 'min:0', 'lte:stock_total'],
+            'book_cover'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:min_width=300,min_height=400,max_width=400,max_height=500'],
+            'path_pdf'         => ['nullable', 'string', 'max:500'],
+            'authors'          => ['nullable', 'array'],
+            'authors.*'        => ['exists:authors,id'],
         ]);
 
         if ($request->hasFile('book_cover')) {

@@ -28,10 +28,12 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::resource('users',      UserController::class);
+        Route::patch('users/{user}/toggle-active',  [UserController::class, 'toggleActive'])->name('users.toggle-active');
+        Route::patch('users/{user}/change-password', [UserController::class, 'changePassword'])->name('users.change-password');
         Route::resource('books',      BookController::class);
         Route::resource('categories', CategoryController::class);
         Route::resource('authors',    AuthorController::class);
-        Route::resource('loans',      LoanController::class)->only(['index', 'show', 'destroy']);
+        Route::resource('loans',      LoanController::class)->only(['index', 'show', 'destroy', 'create', 'store']);
         Route::patch('loans/{loan}/return', [LoanController::class, 'markReturned'])->name('loans.return');
     });
 

@@ -17,6 +17,30 @@
         </div>
     </div>
 
+    {{-- Fotografía --}}
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Fotografía</label>
+
+        @if(isset($author) && $author->photo_url)
+            <div class="mb-2 flex items-center gap-3">
+                <img src="{{ $author->photo_url }}"
+                     alt="{{ $author->full_name }}"
+                     class="w-16 h-16 rounded-full object-cover border border-gray-200">
+                <span class="text-xs text-gray-500">Foto actual. Sube una nueva para reemplazarla.</span>
+            </div>
+        @endif
+
+        <input type="file" name="photo" accept="image/jpeg,image/jpg,image/png"
+               class="block w-full text-sm text-gray-700 border rounded-lg cursor-pointer
+                      file:mr-3 file:py-2 file:px-4 file:rounded-l-lg file:border-0
+                      file:text-sm file:font-medium file:bg-amber-50 file:text-amber-700
+                      hover:file:bg-amber-100
+                      @error('photo') border-red-400 bg-red-50 @else border-gray-300 @enderror">
+        <p class="mt-1 text-xs text-gray-400">JPEG o PNG · máx. 2 MB</p>
+        @error('photo') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+    </div>
+
+    {{-- Biografía --}}
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Biografía</label>
         <textarea name="bio" rows="5"
