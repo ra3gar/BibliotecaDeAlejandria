@@ -12,12 +12,10 @@ class Book extends Model
     protected $fillable = [
         'title',
         'isbn',
-        'codigo_interno',
         'summary',
         'publisher',
         'category_id',
         'book_cover',
-        'path_pdf',
         'published_at',
         'año',
         'stock_total',

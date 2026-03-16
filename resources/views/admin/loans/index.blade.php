@@ -14,13 +14,14 @@ $statusColors = [
 @endphp
 
 {{-- Header --}}
-<div class="flex items-center justify-between mb-5">
+<div class="flex items-center justify-between mb-5 lib-animate">
     <div>
-        <h2 class="text-base font-semibold text-gray-700">Gestión de Préstamos</h2>
-        <p class="text-sm text-gray-400">{{ $loans->total() }} préstamos registrados</p>
+        <h2 class="text-base font-serif font-semibold text-mahogany-900">Gestión de Préstamos</h2>
+        <p class="text-sm text-sepia-400">{{ $loans->total() }} préstamos registrados</p>
     </div>
     <a href="{{ route('admin.loans.create') }}"
-       class="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold rounded-lg text-sm transition">
+       class="inline-flex items-center gap-2 px-4 py-2 bg-gold-500 hover:bg-gold-600 text-mahogany-900 font-semibold rounded-lg text-sm
+              transition-all duration-200 hover:shadow-md active:scale-[0.98]">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
@@ -30,13 +31,15 @@ $statusColors = [
 
 {{-- Filtros --}}
 <form method="GET" action="{{ route('admin.loans.index') }}"
-      class="bg-white rounded-xl shadow-sm p-4 mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      class="bg-parchment-50 border border-parchment-300 rounded-xl shadow-sm p-4 mb-5
+             grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 lib-animate">
 
     {{-- Usuario --}}
     <div>
-        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Usuario</label>
+        <label class="block text-xs font-semibold text-sepia-500 uppercase tracking-wide mb-1">Usuario</label>
         <select name="user_id"
-                class="w-full rounded-lg border border-gray-300 text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400">
+                class="w-full rounded-lg border border-parchment-400 bg-parchment-50 text-sm text-mahogany-900 px-3 py-2
+                       focus:outline-none focus:ring-2 focus:ring-gold-500">
             <option value="">Todos</option>
             @foreach($users as $user)
                 <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
@@ -46,19 +49,21 @@ $statusColors = [
         </select>
     </div>
 
-    {{-- Libro (búsqueda por título) --}}
+    {{-- Libro --}}
     <div>
-        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Título del libro</label>
+        <label class="block text-xs font-semibold text-sepia-500 uppercase tracking-wide mb-1">Título del libro</label>
         <input type="text" name="book" value="{{ request('book') }}"
                placeholder="Buscar por título…"
-               class="w-full rounded-lg border border-gray-300 text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400">
+               class="w-full rounded-lg border border-parchment-400 bg-parchment-50 text-sm text-mahogany-900 px-3 py-2
+                      focus:outline-none focus:ring-2 focus:ring-gold-500">
     </div>
 
     {{-- Categoría --}}
     <div>
-        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Categoría</label>
+        <label class="block text-xs font-semibold text-sepia-500 uppercase tracking-wide mb-1">Categoría</label>
         <select name="category_id"
-                class="w-full rounded-lg border border-gray-300 text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400">
+                class="w-full rounded-lg border border-parchment-400 bg-parchment-50 text-sm text-mahogany-900 px-3 py-2
+                       focus:outline-none focus:ring-2 focus:ring-gold-500">
             <option value="">Todas</option>
             @foreach($categories as $category)
                 <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
@@ -70,9 +75,10 @@ $statusColors = [
 
     {{-- Autor --}}
     <div>
-        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Autor</label>
+        <label class="block text-xs font-semibold text-sepia-500 uppercase tracking-wide mb-1">Autor</label>
         <select name="author_id"
-                class="w-full rounded-lg border border-gray-300 text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400">
+                class="w-full rounded-lg border border-parchment-400 bg-parchment-50 text-sm text-mahogany-900 px-3 py-2
+                       focus:outline-none focus:ring-2 focus:ring-gold-500">
             <option value="">Todos</option>
             @foreach($authors as $author)
                 <option value="{{ $author->id }}" {{ request('author_id') == $author->id ? 'selected' : '' }}>
@@ -84,9 +90,10 @@ $statusColors = [
 
     {{-- Estado --}}
     <div>
-        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Estado</label>
+        <label class="block text-xs font-semibold text-sepia-500 uppercase tracking-wide mb-1">Estado</label>
         <select name="status"
-                class="w-full rounded-lg border border-gray-300 text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400">
+                class="w-full rounded-lg border border-parchment-400 bg-parchment-50 text-sm text-mahogany-900 px-3 py-2
+                       focus:outline-none focus:ring-2 focus:ring-gold-500">
             <option value="">Todos</option>
             <option value="active"   {{ request('status') === 'active'   ? 'selected' : '' }}>Activo</option>
             <option value="returned" {{ request('status') === 'returned' ? 'selected' : '' }}>Devuelto</option>
@@ -97,65 +104,67 @@ $statusColors = [
     {{-- Botones --}}
     <div class="lg:col-span-5 flex items-center gap-2 pt-1">
         <button type="submit"
-                class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold rounded-lg text-sm transition">
+                class="px-4 py-2 bg-gold-500 hover:bg-gold-600 text-mahogany-900 font-semibold rounded-lg text-sm
+                       transition-all duration-200 hover:shadow-sm active:scale-[0.98]">
             Filtrar
         </button>
         <a href="{{ route('admin.loans.index') }}"
-           class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium rounded-lg text-sm transition">
+           class="px-4 py-2 bg-parchment-200 hover:bg-parchment-300 text-sepia-600 font-medium rounded-lg text-sm transition-colors duration-150">
             Limpiar filtros
         </a>
     </div>
 </form>
 
 {{-- Tabla --}}
-<div class="bg-white rounded-xl shadow-sm overflow-hidden">
+<div class="bg-parchment-50 border border-parchment-300 rounded-xl shadow-sm overflow-hidden lib-animate">
+    <div class="overflow-x-auto">
     <table class="w-full text-sm">
-        <thead class="bg-gray-50 border-b border-gray-200">
+        <thead class="bg-parchment-100 border-b border-parchment-400">
             <tr>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide w-12">#</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Usuario</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Libro</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Categoría</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Autores</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">F. Préstamo</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Estado</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-sepia-500 uppercase tracking-wide w-12">#</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-sepia-500 uppercase tracking-wide">Usuario</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-sepia-500 uppercase tracking-wide">Libro</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-sepia-500 uppercase tracking-wide">Categoría</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-sepia-500 uppercase tracking-wide">Autores</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-sepia-500 uppercase tracking-wide">F. Préstamo</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-sepia-500 uppercase tracking-wide">Estado</th>
                 <th class="px-4 py-3"></th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100">
+        <tbody class="divide-y divide-parchment-300">
             @forelse($loans as $loan)
-            <tr class="hover:bg-gray-50 transition">
-                <td class="px-4 py-3 text-gray-400 font-mono text-xs">{{ $loan->id }}</td>
+            <tr class="hover:bg-parchment-100 transition-colors duration-150">
+                <td class="px-4 py-3 text-sepia-400 font-mono text-xs">{{ $loan->id }}</td>
 
                 <td class="px-4 py-3">
-                    <p class="font-medium text-gray-800">{{ $loan->user->full_name }}</p>
-                    <p class="text-xs text-gray-400">{{ $loan->user->email }}</p>
+                    <p class="font-medium text-mahogany-900">{{ $loan->user->full_name }}</p>
+                    <p class="text-xs text-sepia-400">{{ $loan->user->email }}</p>
                 </td>
 
                 <td class="px-4 py-3">
-                    <p class="font-medium text-gray-800 max-w-xs truncate">{{ $loan->book->title }}</p>
+                    <p class="font-medium text-mahogany-900 max-w-xs truncate">{{ $loan->book->title }}</p>
                 </td>
 
                 <td class="px-4 py-3">
                     @if($loan->book->category)
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gold-500/15 text-gold-700">
                             {{ $loan->book->category->name }}
                         </span>
                     @else
-                        <span class="text-gray-400">—</span>
+                        <span class="text-sepia-400">—</span>
                     @endif
                 </td>
 
-                <td class="px-4 py-3 text-gray-500 text-xs max-w-[140px] truncate">
+                <td class="px-4 py-3 text-sepia-500 text-xs max-w-35 truncate">
                     {{ $loan->book->authors->pluck('full_name')->join(', ') ?: '—' }}
                 </td>
 
-                <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
+                <td class="px-4 py-3 text-sepia-500 text-xs whitespace-nowrap">
                     {{ $loan->loan_date->format('d/m/Y') }}
                 </td>
 
                 <td class="px-4 py-3">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {{ $statusColors[$loan->status] ?? 'bg-gray-100 text-gray-600' }}">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {{ $statusColors[$loan->status] ?? 'bg-parchment-200 text-sepia-600' }}">
                         {{ $statusLabels[$loan->status] ?? $loan->status }}
                     </span>
                 </td>
@@ -163,7 +172,7 @@ $statusColors = [
                 <td class="px-4 py-3">
                     <div class="flex items-center justify-end gap-2 flex-nowrap">
                         <a href="{{ route('admin.loans.show', $loan) }}"
-                           class="px-3 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
+                           class="px-3 py-1 text-xs font-medium text-sepia-700 bg-parchment-200 hover:bg-parchment-300 rounded-lg transition-colors duration-150">
                             Ver
                         </a>
 
@@ -171,7 +180,7 @@ $statusColors = [
                         <form method="POST" action="{{ route('admin.loans.return', $loan) }}">
                             @csrf @method('PATCH')
                             <button type="submit"
-                                    class="px-3 py-1 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition">
+                                    class="px-3 py-1 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors duration-150">
                                 Devuelto
                             </button>
                         </form>
@@ -181,7 +190,7 @@ $statusColors = [
                               onsubmit="return confirm('¿Eliminar préstamo #{{ $loan->id }}? Esta acción no se puede deshacer.')">
                             @csrf @method('DELETE')
                             <button type="submit"
-                                    class="px-3 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition">
+                                    class="px-3 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-150">
                                 Eliminar
                             </button>
                         </form>
@@ -190,16 +199,17 @@ $statusColors = [
             </tr>
             @empty
             <tr>
-                <td colspan="8" class="px-4 py-12 text-center text-gray-400 text-sm">
+                <td colspan="8" class="px-4 py-12 text-center text-sepia-400 text-sm">
                     No se encontraron préstamos con los filtros aplicados.
                 </td>
             </tr>
             @endforelse
         </tbody>
     </table>
+    </div>
 
     @if($loans->hasPages())
-    <div class="px-4 py-3 border-t border-gray-100">
+    <div class="px-4 py-3 border-t border-parchment-300">
         {{ $loans->links() }}
     </div>
     @endif

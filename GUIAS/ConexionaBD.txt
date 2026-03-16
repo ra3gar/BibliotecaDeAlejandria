@@ -1,69 +1,67 @@
 ====================================================================
   GUIA: CONFIGURACION DE CONEXION A BASE DE DATOS
-  Proyecto: BibliotecaDeAlejandria - Laravel 12
+  Proyecto: BibliotecaDeAlejandria — Laravel 12
+  Universidad UPED 2026 — Programación Aplicada 1
+  Actualizado: 2026-03-15
 ====================================================================
 
-Esta guia explica como cambiar la conexion a la base de datos
-del proyecto. La configuracion se maneja principalmente desde
-el archivo .env en la raiz del proyecto.
+Esta guía explica cómo configurar la conexión a la base de datos
+y levantar el proyecto por primera vez.
 
 --------------------------------------------------------------------
 ARCHIVOS INVOLUCRADOS
 --------------------------------------------------------------------
 
-1. .env                    <- Aqui van los valores reales (host, usuario, password)
-2. config/database.php     <- Define como Laravel usa esas variables
+1. .env                    <- Aquí van los valores reales (host, usuario, password)
+2. config/database.php     <- Define cómo Laravel usa esas variables
 
 Regla general: NUNCA pongas credenciales directamente en
-config/database.php. Siempre usas el archivo .env.
+config/database.php. Siempre usa el archivo .env.
 
 --------------------------------------------------------------------
-PASO 1 - ABRIR EL ARCHIVO .env
+PASO 1 — CREAR LA BASE DE DATOS EN MYSQL
 --------------------------------------------------------------------
 
-El archivo .env esta en la raiz del proyecto:
+Antes de configurar el .env, crea la base de datos en MySQL.
+Puedes hacerlo desde cualquiera de estas opciones:
+
+  a) MySQL Workbench: New Schema → nombre → Apply
+  b) phpMyAdmin: Nueva base de datos → nombre → Crear
+  c) Terminal MySQL:
+
+        CREATE DATABASE biblioteca_alejandria
+            CHARACTER SET utf8mb4
+            COLLATE utf8mb4_unicode_ci;
+
+  El nombre debe coincidir con DB_DATABASE en .env.
+
+--------------------------------------------------------------------
+PASO 2 — CONFIGURAR EL ARCHIVO .env
+--------------------------------------------------------------------
+
+El archivo .env está en la raíz del proyecto:
 
     BibliotecaDeAlejandria/
     └── .env   <-- este archivo
 
-Abrelo con cualquier editor de texto (VS Code, Notepad, etc.).
+Si no existe, cópialo desde el ejemplo:
+
+    cp .env.example .env
 
 NOTA: Si no ves el archivo, activa "mostrar archivos ocultos"
 en tu explorador, ya que los archivos que empiezan con punto
-suelen estar ocultos en algunos sistemas.
+suelen estar ocultos.
 
---------------------------------------------------------------------
-PASO 2 - ELEGIR EL MOTOR DE BASE DE DATOS
---------------------------------------------------------------------
-
-Busca la linea:
-
-    DB_CONNECTION=mysql
-
-Los valores posibles son:
-    mysql    -> MySQL o MariaDB (lo mas comun)
-    sqlite   -> Archivo local, util para pruebas rapidas
-    pgsql    -> PostgreSQL
-    sqlsrv   -> SQL Server
-
-Para usar MySQL local, asegurate de que diga:
-
-    DB_CONNECTION=mysql
-
---------------------------------------------------------------------
-PASO 3 - CONFIGURAR LOS DATOS DE CONEXION (MySQL)
---------------------------------------------------------------------
-
-Edita las siguientes variables segun tu entorno:
+Edita las siguientes variables según tu entorno:
 
     DB_CONNECTION=mysql
     DB_HOST=127.0.0.1       <- IP del servidor (127.0.0.1 = local)
     DB_PORT=3306             <- Puerto de MySQL (por defecto 3306)
-    DB_DATABASE=nombre_bd    <- Nombre de la base de datos
+    DB_DATABASE=biblioteca_alejandria
     DB_USERNAME=root         <- Usuario de MySQL
-    DB_PASSWORD=             <- Contrasena del usuario (dejar vacio si no tiene)
+    DB_PASSWORD=             <- Contraseña (dejar vacío si no tiene)
 
-Ejemplo para un servidor local tipico con contrasena:
+Ejemplo completo:
 
     DB_CONNECTION=mysql
     DB_HOST=127.0.0.1
@@ -73,62 +71,86 @@ Ejemplo para un servidor local tipico con contrasena:
     DB_PASSWORD=mi_contrasena_secreta
 
 --------------------------------------------------------------------
-PASO 4 - CREAR LA BASE DE DATOS (si no existe)
+PASO 3 — INSTALAR DEPENDENCIAS Y MIGRAR
 --------------------------------------------------------------------
 
-Antes de ejecutar el proyecto, la base de datos debe existir
-en MySQL. Puedes crearla desde:
+Con el .env configurado, ejecuta desde la raíz del proyecto:
 
-  - MySQL Workbench: New Schema > nombre > Apply
-  - phpMyAdmin: Nueva base de datos > nombre > Crear
-  - Terminal MySQL:
-        CREATE DATABASE biblioteca_alejandria;
+    composer setup
 
-El nombre que uses aqui debe coincidir con DB_DATABASE en .env.
+Este comando hace todo en secuencia:
+  1. composer install            → instala dependencias PHP
+  2. php artisan key:generate   → genera la clave de la app
+  3. php artisan migrate        → crea todas las tablas en MySQL
+  4. npm install                 → instala dependencias Node.js
+  5. npm run build               → compila los assets (CSS/JS)
 
 --------------------------------------------------------------------
-PASO 5 - EJECUTAR LAS MIGRACIONES
+PASO 4 — ENLAZAR EL ALMACENAMIENTO PÚBLICO ⚠️ OBLIGATORIO
 --------------------------------------------------------------------
 
-Una vez configurado el .env, ejecuta en la terminal (desde la
-raiz del proyecto):
+Ejecuta este comando una sola vez después de la instalación:
 
-    php artisan migrate
+    php artisan storage:link
 
-Esto crea todas las tablas necesarias en la base de datos.
+Crea un enlace simbólico entre:
+  storage/app/public/  →  public/storage/
 
-Para crear las tablas Y cargar datos de prueba (seeders):
+Sin este enlace las portadas de libros y fotos de autores
+NO se mostrarán en el navegador.
+
+--------------------------------------------------------------------
+PASO 5 — SEMBRAR DATOS DE PRUEBA (opcional)
+--------------------------------------------------------------------
+
+    php artisan db:seed
+
+Crea los siguientes usuarios de prueba:
+
+  admin@biblioteca.com / password  →  rol: admin
+  juan@biblioteca.com  / password  →  rol: user
+
+Para migrar y sembrar en un solo comando:
 
     php artisan migrate --seed
 
-Si quieres borrar todo y empezar de cero:
+Para borrar todo y empezar desde cero:
 
     php artisan migrate:fresh --seed
 
 --------------------------------------------------------------------
-PASO 6 - VERIFICAR LA CONEXION
+PASO 6 — ARRANCAR EL ENTORNO DE DESARROLLO
 --------------------------------------------------------------------
 
-Puedes probar rapidamente que Laravel conecta bien con:
+    composer dev
 
-    php artisan db
+Este comando levanta simultáneamente:
+  - php artisan serve       → servidor PHP en localhost:8000
+  - npm run dev             → Vite con hot reload en localhost:5173
+  - php artisan queue:listen → procesador de colas en background
 
-Si abre una sesion interactiva de MySQL, la conexion funciona.
-Si da error, revisa que:
-  - El servicio de MySQL este corriendo
-  - El nombre de base de datos, usuario y password sean correctos
-  - El puerto no este bloqueado
+Acceder en el navegador: http://localhost:8000
+
+Para cerrar: Ctrl+C en la terminal — detiene los 3 procesos.
+
+⚠️  NO ejecutes php artisan serve por separado mientras composer dev
+    está activo — ya lo incluye y causa conflicto de puertos.
+
+⚠️  Si los estilos no cargan después de reiniciar, elimina el
+    archivo residual de Vite:
+        rm public/hot        (Linux/Mac)
+        del public\hot       (Windows CMD)
 
 --------------------------------------------------------------------
-CAMBIAR A SQLite (para pruebas rapidas)
+CAMBIAR A SQLite (solo para pruebas rápidas)
 --------------------------------------------------------------------
 
-SQLite no requiere instalar ningun servidor. Solo cambia el .env:
+SQLite no requiere instalar ningún servidor. Solo cambia el .env:
 
     DB_CONNECTION=sqlite
 
-Y comenta o elimina las otras variables DB_*. Laravel creara
-automaticamente el archivo de base de datos en:
+Y comenta o elimina las otras variables DB_*. Laravel creará
+automáticamente el archivo de base de datos en:
 
     database/database.sqlite
 
@@ -136,197 +158,151 @@ Ejecuta las migraciones normalmente:
 
     php artisan migrate --seed
 
+Nota: Las pruebas automatizadas (composer test) ya usan SQLite
+en memoria automáticamente — no necesitas cambiar el .env para eso.
+
 --------------------------------------------------------------------
-NOTAS IMPORTANTES
+VERIFICAR LA CONEXIÓN
 --------------------------------------------------------------------
 
-- El archivo .env NO debe subirse a repositorios publicos (git).
-  Ya esta incluido en .gitignore por defecto en Laravel.
+Puedes probar que Laravel conecta bien con:
 
-- Si cambias el .env con la aplicacion corriendo, reinicia
-  el servidor de desarrollo:
-      Ctrl+C  y luego  composer dev
+    php artisan db
 
-- El archivo config/database.php NO necesita modificarse para
-  cambios normales de entorno. Solo editalo si necesitas
-  configuraciones avanzadas (charset, collation, SSL, etc.).
-
-====================================================================
-  Proyecto: BibliotecaDeAlejandria | Universidad UPED 2026
-====================================================================
-
+Si abre una sesión interactiva de MySQL, la conexión funciona.
+Si da error, revisa que:
+  - El servicio de MySQL esté corriendo
+  - El nombre de base de datos, usuario y password sean correctos
+  - El puerto no esté bloqueado por el firewall
 
 ====================================================================
-  ANALISIS TECNICO DE PERSISTENCIA DE DATOS
-  Generado: 2026-03-14
+  ESQUEMA DE TABLAS — Estado actual (2026-03-15)
 ====================================================================
 
 --------------------------------------------------------------------
-1. CONFIGURACION DE ENTORNO (.env)
+book_store_users — Usuarios del sistema
 --------------------------------------------------------------------
-
-Variables que debes configurar manualmente:
-
-    DB_CONNECTION=mysql
-    DB_HOST=127.0.0.1
-    DB_PORT=3306
-    DB_DATABASE=biblioteca_alejandria
-    DB_USERNAME=root
-    DB_PASSWORD=tu_contrasena
-
-NOTA: El archivo config/database.php tiene un bug menor — la clave
-'url' aparece duplicada en el bloque mysql (lineas 48-49), lo que
-hace que la segunda definicion sobreescriba a la primera. No afecta
-el funcionamiento porque Laravel usa host/port/database
-individualmente, pero es un defecto de codigo a corregir.
-
---------------------------------------------------------------------
-2. ESQUEMA DE TABLAS
---------------------------------------------------------------------
-
---- book_store_users (Usuarios del sistema) ---
 
   id              BIGINT UNSIGNED PK  auto-increment
   first_name      VARCHAR(255)        requerido
   last_name       VARCHAR(255)        requerido
-  email           VARCHAR(255)        UNIQUE
-  password        VARCHAR(255)        bcrypt hash
+  email           VARCHAR(255)        UNIQUE, requerido
+  password        VARCHAR(255)        hash bcrypt
   role            ENUM('admin','user') default: 'user'
-  is_active       BOOLEAN             default: true
+  is_active       TINYINT(1)          default: 1 (true)
   remember_token  VARCHAR(100)        nullable
   created_at / updated_at  TIMESTAMP  Laravel timestamps
 
-Tablas auxiliares creadas en la misma migracion:
-  - password_reset_tokens (email PK, token, created_at)
-  - sessions (id PK, user_id, ip_address, user_agent, payload, last_activity)
+  Tablas auxiliares de Laravel: password_reset_tokens, sessions,
+  cache, jobs (creadas automáticamente por migraciones iniciales).
 
---- categories (Categorias de libros) ---
+--------------------------------------------------------------------
+categories — Categorías de libros
+--------------------------------------------------------------------
 
   id              BIGINT UNSIGNED PK
   name            VARCHAR(255)
   description     TEXT               nullable
   created_at / updated_at  TIMESTAMP
 
---- authors (Autores) ---
+--------------------------------------------------------------------
+authors — Autores
+--------------------------------------------------------------------
 
   id              BIGINT UNSIGNED PK
   first_name      VARCHAR(255)
   last_name       VARCHAR(255)
   bio             TEXT               nullable
-  photo_path      VARCHAR(255)       nullable, ruta en disco public/authors/
+  photo_path      VARCHAR(255)       nullable  ruta en storage/app/public/authors/
   created_at / updated_at  TIMESTAMP
 
-  Accesor en modelo: $author->photo_url  -> URL publica si tiene foto, null si no tiene
-  Formatos de foto aceptados: jpeg, jpg, png  |  Maximo: 2 MB
-  Al actualizar foto: se elimina la anterior del disco automaticamente
-  Al eliminar autor: se elimina su foto del disco automaticamente
+  Accesor: $author->photo_url  → URL pública si tiene foto, null si no
+  Formatos de foto aceptados: jpeg, jpg, png  |  Máximo: 2 MB
+  Al actualizar foto: se elimina la anterior del disco automáticamente
+  Al eliminar autor: se elimina su foto del disco automáticamente
 
---- books (Libros — campos combinados de 2 migraciones) ---
+--------------------------------------------------------------------
+books — Libros
+--------------------------------------------------------------------
 
-  id              BIGINT UNSIGNED PK
-  title           VARCHAR(255)
-  isbn            VARCHAR(20)        UNIQUE, nullable
-  summary         TEXT               nullable
-  publisher       VARCHAR(255)       nullable
-  category_id     BIGINT UNSIGNED FK -> categories.id, NULL ON DELETE
-  book_cover      VARCHAR(255)       nullable, ruta en disco public/books/
-  published_at    DATE               nullable
-  stock_total     UNSIGNED INT       default: 0
-  available_copies UNSIGNED INT      default: 0
+  id               BIGINT UNSIGNED PK
+  category_id      BIGINT UNSIGNED FK → categories.id, SET NULL ON DELETE
+  title            VARCHAR(255)        requerido
+  isbn             VARCHAR(20)         UNIQUE, nullable
+  summary          TEXT                nullable
+  publisher        VARCHAR(150)        nullable
+  book_cover       VARCHAR(255)        nullable  ruta en storage/app/public/books/
+  published_at     DATE                nullable
+  año              INT                 nullable  derivado automáticamente de published_at
+  stock_total      INT UNSIGNED        default: 0
+  available_copies INT UNSIGNED        default: 0
   created_at / updated_at  TIMESTAMP
 
---- book_author (Tabla pivote Many-to-Many) ---
+  Campos eliminados (migración 2026_03_15_000001):
+    - codigo_interno  → en desuso
+    - path_pdf        → funcionalidad no implementada
 
-  book_id         BIGINT UNSIGNED FK -> books.id,   CASCADE ON DELETE
-  author_id       BIGINT UNSIGNED FK -> authors.id, CASCADE ON DELETE
+  Helper: $book->isAvailable() → true si available_copies > 0
+
+--------------------------------------------------------------------
+book_author — Tabla pivote libros ↔ autores (Muchos a Muchos)
+--------------------------------------------------------------------
+
+  book_id         BIGINT UNSIGNED FK → books.id,   CASCADE ON DELETE
+  author_id       BIGINT UNSIGNED FK → authors.id, CASCADE ON DELETE
   PK compuesta: (book_id, author_id)
   Sin timestamps ni id propio.
   Se gestiona via $book->authors()->sync([...]) en el controller.
 
---- loans (Prestamos) ---
+--------------------------------------------------------------------
+loans — Préstamos
+--------------------------------------------------------------------
 
   id              BIGINT UNSIGNED PK
-  user_id         BIGINT UNSIGNED FK -> book_store_users.id, CASCADE ON DELETE
-  book_id         BIGINT UNSIGNED FK -> books.id,            CASCADE ON DELETE
-  loan_date       DATE
+  user_id         BIGINT UNSIGNED FK → book_store_users.id, CASCADE ON DELETE
+  book_id         BIGINT UNSIGNED FK → books.id,            CASCADE ON DELETE
+  status          ENUM('active','returned','overdue')  default: 'active'
+  loan_date       DATE               requerido
   return_date     DATE               nullable
-  status          ENUM('active','returned','overdue') default: 'active'
   created_at / updated_at  TIMESTAMP
 
---- audit_logs (Auditoria automatica de libros) ---
+  Reglas de stock:
+    - Solo se crea préstamo si available_copies > 0
+    - Al crear: available_copies decrementa en 1
+    - Al devolver: available_copies incrementa en 1
+    - markReturned() está protegido contra doble ejecución
+
+--------------------------------------------------------------------
+audit_logs — Auditoría automática
+--------------------------------------------------------------------
 
   id              BIGINT UNSIGNED PK
-  user_id         BIGINT UNSIGNED FK -> book_store_users.id, NULL ON DELETE, nullable
-  action          VARCHAR(255)       valores: 'created', 'updated', 'deleted'
-  model_type      VARCHAR(255)       ej: 'Book'
+  user_id         BIGINT UNSIGNED FK → book_store_users.id, SET NULL ON DELETE, nullable
+  action          VARCHAR(50)        valores: created | updated | deleted | login_failed
+  model_type      VARCHAR(100)       ej: 'Book' | 'Auth'
   model_id        BIGINT UNSIGNED    nullable
   description     VARCHAR(255)
-  created_at      TIMESTAMP          auto (useCurrent()) — SIN updated_at
+  created_at      TIMESTAMP          auto (useCurrent())
+  — SIN updated_at por diseño —
 
---------------------------------------------------------------------
-3. DIFERENCIACION DE CREACION
---------------------------------------------------------------------
+  Disparadores:
+    - BookObserver: created, updated, deleted al gestionar libros
+    - AuthController: login_failed al fallar autenticación (registra email + IP)
+  Los últimos 8 registros se muestran en el dashboard del admin.
 
-LO QUE TU DEBES CREAR MANUALMENTE (solo una vez):
+====================================================================
+  RECURSOS ESTÁTICOS DEL SITIO (public/images/)
+====================================================================
 
-    CREATE DATABASE biblioteca_alejandria
-      CHARACTER SET utf8mb4
-      COLLATE utf8mb4_unicode_ci;
+  Estos archivos NO pasan por Storage::disk — se sirven directamente
+  desde la carpeta public/ y se referencian con asset().
 
-Solo el contenedor vacio (la base de datos en si). Nada mas.
+  logo.png      → Logo del sistema (header admin, navbar usuario, login)
+  Fondo.png     → Imagen de fondo de la pantalla de login
+  Fondo2.jpg    → Imagen de fondo del panel de administración y catálogo
 
-LO QUE CREA EL PROYECTO AUTOMATICAMENTE:
-
-  php artisan migrate
-    -> Ejecuta las 12 migraciones en orden cronologico,
-       creando todas las tablas con columnas, indices y FKs.
-
-  php artisan migrate --seed
-    -> Migra + ejecuta DatabaseSeeder con usuarios de prueba.
-
-  php artisan migrate:fresh --seed
-    -> Elimina TODAS las tablas, las recrea desde cero y siembra datos.
-
-Usuarios sembrados por DatabaseSeeder:
-
-  admin@biblioteca.com / password  ->  rol: admin,  is_active: true
-  juan@biblioteca.com  / password  ->  rol: user,   is_active: true
-
---------------------------------------------------------------------
-4. REGLAS DE INTEGRIDAD — stock_total y available_copies
---------------------------------------------------------------------
-
-  stock_total      = copias fisicas totales que posee la biblioteca
-  available_copies = copias actualmente disponibles para prestamo
-
-Invariante fundamental:
-    0 <= available_copies <= stock_total
-
-  CREAR/EDITAR LIBRO:
-    El controller aplica la regla lte:stock_total.
-    available_copies no puede guardarse mayor que stock_total.
-
-  CREAR PRESTAMO:
-    Se verifica available_copies > 0.
-    Si es 0, se rechaza con error de validacion.
-    Si hay stock, se ejecuta decrement('available_copies').
-
-  MARCAR COMO DEVUELTO:
-    Se ejecuta increment('available_copies').
-    markReturned() esta protegido contra doble ejecucion:
-    si el prestamo ya tiene status='returned', no hace nada.
-
-  HELPER isAvailable():
-    Retorna true si available_copies > 0.
-    Usado en vistas para mostrar disponibilidad al usuario.
-
-Flujo de stock en un ciclo completo:
-
-    stock_total=5, available_copies=5
-      -> Prestamo creado:  available_copies=4
-      -> Otro prestamo:    available_copies=3
-      -> Devuelto:         available_copies=4
-      -> stock_total NUNCA cambia en operaciones de prestamo.
+  Para agregar una imagen estática nueva: colócala en public/images/
+  y referencíala en Blade con: {{ asset('images/nombre.ext') }}
 
 ====================================================================
   Proyecto: BibliotecaDeAlejandria | Universidad UPED 2026

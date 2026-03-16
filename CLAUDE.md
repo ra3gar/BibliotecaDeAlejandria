@@ -67,6 +67,12 @@ Laravel 12 standard MVC. Controllers are split into `Admin/` and `User/` namespa
 - Role middleware alias `role` → `App\Http\Middleware\CheckRole`, registered in `bootstrap/app.php`
 - `CheckRole` bloquea usuarios inactivos (logout + redirect a login con mensaje), y redirige roles incorrectos a su home
 
+**Static Assets**
+- `public/images/logo.png` — logo del sistema; usado en login, sidebar admin y navbar usuario via `asset('images/logo.png')`
+- `public/images/Fondo.png` — fondo de la pantalla de login
+- `public/images/Fondo2.jpg` — fondo del panel admin y catálogo de usuario
+- Estas imágenes NO usan `Storage::disk` — se sirven directamente desde `public/`
+
 **Domain Models**
 - `User` — `book_store_users`, standard PK `id`
 - `Category` — `categories`, standard PK `id`
@@ -76,10 +82,12 @@ Laravel 12 standard MVC. Controllers are split into `Admin/` and `User/` namespa
   - Al actualizar foto: se elimina la anterior del disco antes de guardar la nueva
   - Al eliminar autor: se elimina su foto del disco automáticamente
 - `Book` — `books`, standard PK `id`; portadas en `Storage::disk('public')` carpeta `books/`
-  - Campos adicionales: `año` (year, nullable), `codigo_interno` (string 50, unique, nullable), `path_pdf` (string, nullable — copia digital si aplica)
+  - Campos: `title`, `isbn`, `summary`, `publisher`, `category_id`, `book_cover`, `published_at`, `año`, `stock_total`, `available_copies`
+  - `año` (integer, nullable) — se deriva automáticamente de `published_at` en `BookController` al crear/editar; no se acepta desde el formulario
   - Stock físico: `stock_total` (int, default 0), `available_copies` (int, default 0)
   - Helper: `$book->isAvailable()` → true si `available_copies > 0`
   - Observer: `BookObserver` registrado en `AppServiceProvider` — graba en `audit_logs` cada created/updated/deleted
+  - Campos eliminados: `codigo_interno` y `path_pdf` (removidos en migración `2026_03_15_000001`)
 - `Loan` — `loans`, standard PK `id`; `status` enum: `active` | `returned` | `overdue`
   - Crear préstamo: verifica `available_copies > 0`, decrementa en 1
   - Marcar devuelto: incrementa `available_copies` en 1; ignora si ya estaba devuelto

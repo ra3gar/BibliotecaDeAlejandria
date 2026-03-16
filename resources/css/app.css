@@ -5,11 +5,55 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+/* ═══════════════════════════════════════════════════
+   TOKENS DE DISEÑO — Biblioteca Moderna & Elegante
+   ═══════════════════════════════════════════════════ */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* ── Tipografía ── */
+    --font-sans:  'Source Sans 3', ui-sans-serif, system-ui, sans-serif,
+                  'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+
+    /* ── Madera oscura — Mahogany ── */
+    --color-mahogany-950: #0D0906;
+    --color-mahogany-900: #1C1410;
+    --color-mahogany-800: #2C2018;
+    --color-mahogany-700: #3D2B1F;
+    --color-mahogany-600: #5C3D2A;
+
+    /* ── Oro antiguo — Gold ── */
+    --color-gold-300: #F0DC9A;
+    --color-gold-400: #E0C060;
+    --color-gold-500: #C9A84C;
+    --color-gold-600: #A8882E;
+    --color-gold-700: #886E1A;
+
+    /* ── Azul medianoche — Midnight ── */
+    --color-midnight-900: #0F1929;
+    --color-midnight-800: #1B2A4A;
+    --color-midnight-700: #263C6A;
+    --color-midnight-600: #3354A0;
+    --color-midnight-100: #E8EDF7;
+
+    /* ── Pergamino — Parchment ── */
+    --color-parchment-50:  #FEFCF7;
+    --color-parchment-100: #F9F5EC;
+    --color-parchment-200: #F3EDD8;
+    --color-parchment-300: #E8DFCA;
+    --color-parchment-400: #D9CEB5;
+    --color-parchment-500: #C0B095;
+
+    /* ── Sepia — tonos tierra ── */
+    --color-sepia-300: #B8957A;
+    --color-sepia-400: #8B6F5E;
+    --color-sepia-500: #6B5040;
+    --color-sepia-600: #4A3428;
+    --color-sepia-700: #321F13;
 }
 
+/* ═══════════════════════════════════════════════════
+   ESTILOS BASE
+   ═══════════════════════════════════════════════════ */
 @layer base {
     a,
     button,
@@ -47,3 +91,32 @@
         cursor: not-allowed;
     }
 }
+
+/* ═══════════════════════════════════════════════════
+   ANIMACIONES
+   ═══════════════════════════════════════════════════ */
+@keyframes lib-fade-up {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lib-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Animación individual */
+.lib-animate {
+    animation: lib-fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Animación escalonada para grids y listas */
+.lib-stagger > *:nth-child(1)   { animation: lib-fade-up 0.4s cubic-bezier(0.22,1,0.36,1) 0ms   both; }
+.lib-stagger > *:nth-child(2)   { animation: lib-fade-up 0.4s cubic-bezier(0.22,1,0.36,1) 65ms  both; }
+.lib-stagger > *:nth-child(3)   { animation: lib-fade-up 0.4s cubic-bezier(0.22,1,0.36,1) 130ms both; }
+.lib-stagger > *:nth-child(4)   { animation: lib-fade-up 0.4s cubic-bezier(0.22,1,0.36,1) 195ms both; }
+.lib-stagger > *:nth-child(5)   { animation: lib-fade-up 0.4s cubic-bezier(0.22,1,0.36,1) 260ms both; }
+.lib-stagger > *:nth-child(6)   { animation: lib-fade-up 0.4s cubic-bezier(0.22,1,0.36,1) 325ms both; }
+.lib-stagger > *:nth-child(7)   { animation: lib-fade-up 0.4s cubic-bezier(0.22,1,0.36,1) 390ms both; }
+.lib-stagger > *:nth-child(8)   { animation: lib-fade-up 0.4s cubic-bezier(0.22,1,0.36,1) 455ms both; }
+.lib-stagger > *:nth-child(n+9) { animation: lib-fade-up 0.4s cubic-bezier(0.22,1,0.36,1) 520ms both; }

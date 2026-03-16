@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Author;
 use App\Models\Book;
 use App\Models\Category;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -31,19 +32,18 @@ class BookController extends Controller
         $data = $request->validate([
             'title'            => ['required', 'string', 'max:255'],
             'isbn'             => ['nullable', 'string', 'max:20', 'unique:books'],
-            'codigo_interno'   => ['nullable', 'string', 'max:50', 'unique:books'],
             'summary'          => ['nullable', 'string'],
             'publisher'        => ['nullable', 'string', 'max:150'],
             'category_id'      => ['nullable', 'exists:categories,id'],
             'published_at'     => ['nullable', 'date'],
-            'año'              => ['nullable', 'integer', 'min:1000', 'max:2100'],
             'stock_total'      => ['required', 'integer', 'min:0'],
             'available_copies' => ['required', 'integer', 'min:0', 'lte:stock_total'],
             'book_cover'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:min_width=300,min_height=400,max_width=400,max_height=500'],
-            'path_pdf'         => ['nullable', 'string', 'max:500'],
             'authors'          => ['nullable', 'array'],
             'authors.*'        => ['exists:authors,id'],
         ]);
+
+        $data['año'] = isset($data['published_at']) ? Carbon::parse($data['published_at'])->year : null;
 
         if ($request->hasFile('book_cover')) {
             $data['book_cover'] = $request->file('book_cover')->store('books', 'public');
@@ -71,19 +71,18 @@ class BookController extends Controller
         $data = $request->validate([
             'title'            => ['required', 'string', 'max:255'],
             'isbn'             => ['nullable', 'string', 'max:20', 'unique:books,isbn,' . $book->id],
-            'codigo_interno'   => ['nullable', 'string', 'max:50', 'unique:books,codigo_interno,' . $book->id],
             'summary'          => ['nullable', 'string'],
             'publisher'        => ['nullable', 'string', 'max:150'],
             'category_id'      => ['nullable', 'exists:categories,id'],
             'published_at'     => ['nullable', 'date'],
-            'año'              => ['nullable', 'integer', 'min:1000', 'max:2100'],
             'stock_total'      => ['required', 'integer', 'min:0'],
             'available_copies' => ['required', 'integer', 'min:0', 'lte:stock_total'],
             'book_cover'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:min_width=300,min_height=400,max_width=400,max_height=500'],
-            'path_pdf'         => ['nullable', 'string', 'max:500'],
             'authors'          => ['nullable', 'array'],
             'authors.*'        => ['exists:authors,id'],
         ]);
+
+        $data['año'] = isset($data['published_at']) ? Carbon::parse($data['published_at'])->year : null;
 
         if ($request->hasFile('book_cover')) {
             if ($book->book_cover) {
