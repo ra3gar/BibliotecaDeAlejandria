@@ -21,8 +21,7 @@ $statusColors = [
         <p class="text-sm text-sepia-400">{{ $loans->total() }} préstamos registrados</p>
     </div>
     <a href="{{ route('admin.loans.create') }}"
-       class="inline-flex items-center gap-2 px-4 py-2 bg-gold-500 hover:bg-gold-600 text-mahogany-900 font-semibold rounded-lg text-sm
-              transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+       class="btn-primary">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
@@ -32,15 +31,14 @@ $statusColors = [
 
 {{-- Filtros --}}
 <form method="GET" action="{{ route('admin.loans.index') }}"
-      class="bg-parchment-50 border border-parchment-300 rounded-xl shadow-sm p-4 mb-5
+      class="bg-parchment-50 border border-parchment-300 rounded-2xl shadow-sm p-5 mb-5
              grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 lib-animate">
 
     {{-- Usuario --}}
     <div>
         <label class="block text-xs font-semibold text-sepia-500 uppercase tracking-wide mb-1">Usuario</label>
         <select name="user_id"
-                class="w-full rounded-lg border border-parchment-400 bg-parchment-50 text-sm text-mahogany-900 px-3 py-2
-                       focus:outline-none focus:ring-2 focus:ring-gold-500">
+                class="form-input">
             <option value="">Todos</option>
             @foreach($users as $user)
                 <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
@@ -55,16 +53,14 @@ $statusColors = [
         <label class="block text-xs font-semibold text-sepia-500 uppercase tracking-wide mb-1">Título del libro</label>
         <input type="text" name="book" value="{{ request('book') }}"
                placeholder="Buscar por título…"
-               class="w-full rounded-lg border border-parchment-400 bg-parchment-50 text-sm text-mahogany-900 px-3 py-2
-                      focus:outline-none focus:ring-2 focus:ring-gold-500">
+               class="form-input">
     </div>
 
     {{-- Categoría --}}
     <div>
         <label class="block text-xs font-semibold text-sepia-500 uppercase tracking-wide mb-1">Categoría</label>
         <select name="category_id"
-                class="w-full rounded-lg border border-parchment-400 bg-parchment-50 text-sm text-mahogany-900 px-3 py-2
-                       focus:outline-none focus:ring-2 focus:ring-gold-500">
+                class="form-input">
             <option value="">Todas</option>
             @foreach($categories as $category)
                 <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
@@ -78,8 +74,7 @@ $statusColors = [
     <div>
         <label class="block text-xs font-semibold text-sepia-500 uppercase tracking-wide mb-1">Autor</label>
         <select name="author_id"
-                class="w-full rounded-lg border border-parchment-400 bg-parchment-50 text-sm text-mahogany-900 px-3 py-2
-                       focus:outline-none focus:ring-2 focus:ring-gold-500">
+                class="form-input">
             <option value="">Todos</option>
             @foreach($authors as $author)
                 <option value="{{ $author->id }}" {{ request('author_id') == $author->id ? 'selected' : '' }}>
@@ -93,8 +88,7 @@ $statusColors = [
     <div>
         <label class="block text-xs font-semibold text-sepia-500 uppercase tracking-wide mb-1">Estado</label>
         <select name="status"
-                class="w-full rounded-lg border border-parchment-400 bg-parchment-50 text-sm text-mahogany-900 px-3 py-2
-                       focus:outline-none focus:ring-2 focus:ring-gold-500">
+                class="form-input">
             <option value="">Todos</option>
             <option value="pending"  {{ request('status') === 'pending'  ? 'selected' : '' }}>Pendiente</option>
             <option value="active"   {{ request('status') === 'active'   ? 'selected' : '' }}>Activo</option>
@@ -105,20 +99,20 @@ $statusColors = [
 
     {{-- Botones --}}
     <div class="lg:col-span-5 flex items-center gap-2 pt-1">
-        <button type="submit"
-                class="px-4 py-2 bg-gold-500 hover:bg-gold-600 text-mahogany-900 font-semibold rounded-lg text-sm
-                       transition-all duration-200 hover:shadow-sm active:scale-[0.98]">
+        <button type="submit" class="btn-primary">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+            </svg>
             Filtrar
         </button>
-        <a href="{{ route('admin.loans.index') }}"
-           class="px-4 py-2 bg-parchment-200 hover:bg-parchment-300 text-sepia-600 font-medium rounded-lg text-sm transition-colors duration-150">
+        <a href="{{ route('admin.loans.index') }}" class="btn-ghost">
             Limpiar filtros
         </a>
     </div>
 </form>
 
 {{-- Tabla --}}
-<div class="bg-parchment-50 border border-parchment-300 rounded-xl shadow-sm overflow-hidden lib-animate">
+<div class="bg-parchment-50 border border-parchment-300 rounded-2xl shadow-sm overflow-hidden lib-animate">
     <div class="overflow-x-auto">
     <table class="w-full text-sm">
         <thead class="bg-parchment-100 border-b border-parchment-400">
@@ -174,7 +168,7 @@ $statusColors = [
                 <td class="px-4 py-3">
                     <div class="flex items-center justify-end gap-2 flex-nowrap">
                         <a href="{{ route('admin.loans.show', $loan) }}"
-                           class="px-3 py-1 text-xs font-medium text-sepia-700 bg-parchment-200 hover:bg-parchment-300 rounded-lg transition-colors duration-150">
+                           class="px-3 py-1 text-xs font-medium text-sepia-700 bg-parchment-200 hover:bg-parchment-300 rounded-xl transition-colors duration-150">
                             Ver
                         </a>
 
@@ -182,7 +176,7 @@ $statusColors = [
                         <form method="POST" action="{{ route('admin.loans.confirm-pickup', $loan) }}">
                             @csrf @method('PATCH')
                             <button type="submit"
-                                    class="px-3 py-1 text-xs font-medium text-yellow-700 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors duration-150">
+                                    class="px-3 py-1 text-xs font-medium text-yellow-700 bg-yellow-50 hover:bg-yellow-100 rounded-xl transition-colors duration-150">
                                 Confirmar entrega
                             </button>
                         </form>
@@ -192,7 +186,7 @@ $statusColors = [
                         <form method="POST" action="{{ route('admin.loans.return', $loan) }}">
                             @csrf @method('PATCH')
                             <button type="submit"
-                                    class="px-3 py-1 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors duration-150">
+                                    class="px-3 py-1 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-xl transition-colors duration-150">
                                 Devuelto
                             </button>
                         </form>
@@ -202,7 +196,7 @@ $statusColors = [
                               onsubmit="return confirm('¿Eliminar préstamo #{{ $loan->id }}? Esta acción no se puede deshacer.')">
                             @csrf @method('DELETE')
                             <button type="submit"
-                                    class="px-3 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-150">
+                                    class="px-3 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-xl transition-colors duration-150">
                                 Eliminar
                             </button>
                         </form>

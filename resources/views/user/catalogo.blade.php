@@ -11,10 +11,16 @@
 @section('content')
 
 {{-- Hero / Carousel --}}
-<section class="bg-mahogany-950 py-12" x-data="carousel({{ $latestBooks->count() }})">
+<section class="py-12" x-data="carousel({{ $latestBooks->count() }})"
+         style="background-color: #110C09; background-image: linear-gradient(160deg, #110C09 60%, #1C1410 100%);">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <p class="text-gold-500 text-xs font-semibold uppercase tracking-widest mb-2">Últimas incorporaciones</p>
-        <h1 class="text-parchment-100 text-2xl font-serif font-semibold mb-8">Novedades del catálogo</h1>
+        <div class="flex items-end justify-between mb-7">
+            <div>
+                <p class="text-gold-500 text-xs font-semibold uppercase tracking-widest mb-2">Últimas incorporaciones</p>
+                <h1 class="text-parchment-100 text-2xl font-serif font-semibold">Novedades del catálogo</h1>
+            </div>
+            <div class="hidden md:block w-16 h-px mb-2" style="background: linear-gradient(to right, rgba(201,151,74,0.6), transparent);"></div>
+        </div>
 
         @if($latestBooks->isEmpty())
             <p class="text-sepia-400">Aún no hay libros registrados.</p>
@@ -92,9 +98,12 @@
 </section>
 
 {{-- Categories --}}
-<section id="categorias" class="py-12 bg-parchment-100">
+<section id="categorias" class="py-14 bg-parchment-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-xl font-serif font-semibold text-mahogany-900 mb-6">Explorar por Categoría</h2>
+        <div class="flex items-center gap-4 mb-7">
+            <div class="w-1 h-7 rounded-full bg-gold-500"></div>
+            <h2 class="text-xl font-serif font-semibold text-mahogany-900">Explorar por Categoría</h2>
+        </div>
 
         @if($categories->isEmpty())
             <p class="text-sepia-400 text-sm">No hay categorías registradas.</p>
@@ -122,9 +131,12 @@
 </section>
 
 {{-- Authors --}}
-<section id="autores" class="py-12 bg-parchment-200">
+<section id="autores" class="py-14 bg-parchment-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-xl font-serif font-semibold text-mahogany-900 mb-6">Explorar por Autor</h2>
+        <div class="flex items-center gap-4 mb-7">
+            <div class="w-1 h-7 rounded-full bg-gold-500"></div>
+            <h2 class="text-xl font-serif font-semibold text-mahogany-900">Explorar por Autor</h2>
+        </div>
 
         @if($authors->isEmpty())
             <p class="text-sepia-400 text-sm">No hay autores registrados.</p>

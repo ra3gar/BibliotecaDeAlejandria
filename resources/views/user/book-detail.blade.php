@@ -78,20 +78,18 @@
                 @if($book->isAvailable())
                 <div class="mb-6">
                     @if(session('success'))
-                        <div class="mb-3 px-4 py-2 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+                        <div class="mb-3 px-4 py-2 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
                             {{ session('success') }}
                         </div>
                     @endif
                     @if(session('error'))
-                        <div class="mb-3 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                        <div class="mb-3 px-4 py-2 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
                             {{ session('error') }}
                         </div>
                     @endif
                     <form method="POST" action="{{ route('books.reserve', $book) }}">
                         @csrf
-                        <button type="submit"
-                                class="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-500 hover:bg-gold-600 text-mahogany-900 font-semibold rounded-lg text-sm
-                                       transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+                        <button type="submit" class="btn-primary">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
@@ -103,7 +101,7 @@
                 @else
                 <div class="mb-6">
                     @if(session('error'))
-                        <div class="px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                        <div class="px-4 py-2 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
                             {{ session('error') }}
                         </div>
                     @endif

@@ -5,7 +5,9 @@
       "Bash(php:*)",
       "Bash(cmd:*)",
       "Bash(powershell:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebFetch(domain:id-preview--786d77ad-e434-414b-8e43-f5d000dfceda.lovable.app)",
+      "WebFetch(domain:lovable.dev)"
     ]
   }
 }

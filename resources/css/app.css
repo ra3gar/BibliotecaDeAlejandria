@@ -6,11 +6,11 @@
 @source '../**/*.js';
 
 /* ═══════════════════════════════════════════════════
-   TOKENS DE DISEÑO — Biblioteca Moderna & Elegante
+   TOKENS DE DISEÑO — Códice Antiguo
    ═══════════════════════════════════════════════════ */
 @theme {
     /* ── Tipografía ── */
-    --font-sans:  'Source Sans 3', ui-sans-serif, system-ui, sans-serif,
+    --font-sans:  'Inter', 'Source Sans 3', ui-sans-serif, system-ui, sans-serif,
                   'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
 
@@ -21,12 +21,12 @@
     --color-mahogany-700: #3D2B1F;
     --color-mahogany-600: #5C3D2A;
 
-    /* ── Oro antiguo — Gold ── */
+    /* ── Oro ámbar — Gold ── */
     --color-gold-300: #F0DC9A;
-    --color-gold-400: #E0C060;
-    --color-gold-500: #C9A84C;
-    --color-gold-600: #A8882E;
-    --color-gold-700: #886E1A;
+    --color-gold-400: #E0BA60;
+    --color-gold-500: #C9974A;
+    --color-gold-600: #A87830;
+    --color-gold-700: #886018;
 
     /* ── Azul medianoche — Midnight ── */
     --color-midnight-900: #0F1929;
@@ -36,25 +36,45 @@
     --color-midnight-100: #E8EDF7;
 
     /* ── Pergamino — Parchment ── */
-    --color-parchment-50:  #FEFCF7;
-    --color-parchment-100: #F9F5EC;
-    --color-parchment-200: #F3EDD8;
-    --color-parchment-300: #E8DFCA;
-    --color-parchment-400: #D9CEB5;
-    --color-parchment-500: #C0B095;
+    --color-parchment-50:  #FEFDF9;
+    --color-parchment-100: #FAF6EE;
+    --color-parchment-200: #F3EDE0;
+    --color-parchment-300: #E4D9C8;
+    --color-parchment-400: #D0C4AD;
+    --color-parchment-500: #B8A890;
 
     /* ── Sepia — tonos tierra ── */
-    --color-sepia-300: #B8957A;
-    --color-sepia-400: #8B6F5E;
-    --color-sepia-500: #6B5040;
-    --color-sepia-600: #4A3428;
-    --color-sepia-700: #321F13;
+    --color-sepia-300: #B89578;
+    --color-sepia-400: #9C7E66;
+    --color-sepia-500: #7A6252;
+    --color-sepia-600: #5A4838;
+    --color-sepia-700: #3C2E22;
+
+}
+
+/* ── Alias semánticos — Códice Antiguo ──
+   Declarados en :root (no en @theme) para evitar conflictos con
+   los namespaces reservados "accent" y "text-*" de Tailwind v4.
+   Uso en Blade: bg-(--color-background), text-(--color-primary), etc. */
+:root {
+    --color-background: #FAF6EE;   /* parchment-100 */
+    --color-primary:    #1C1410;   /* mahogany-900  */
+    --color-accent:     #C9974A;   /* gold-500      */
+    --color-text-main:  #3C2E22;   /* sepia-700     */
 }
 
 /* ═══════════════════════════════════════════════════
    ESTILOS BASE
    ═══════════════════════════════════════════════════ */
 @layer base {
+    /* ── Tipografía de encabezados — Playfair Display automático ──
+       h1 y h2 usan la fuente serif; h3+ quedan en sans por defecto
+       (los templates pueden anular con class="font-serif" o "font-sans") */
+    h1, h2 {
+        font-family: var(--font-serif);
+        color: var(--color-primary);
+    }
+
     a,
     button,
     label,
@@ -89,6 +109,140 @@
 
     input[type="file"]:disabled::file-selector-button {
         cursor: not-allowed;
+    }
+}
+
+/* ═══════════════════════════════════════════════════
+   COMPONENTES REUTILIZABLES
+   ═══════════════════════════════════════════════════ */
+@layer components {
+
+    /* Botón primario — acento dorado */
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1.25rem;
+        background-color: var(--color-gold-500);
+        color: var(--color-mahogany-900);
+        font-weight: 600;
+        font-size: 0.875rem;
+        letter-spacing: 0.01em;
+        border-radius: 0.75rem;
+        border: none;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .btn-primary:hover {
+        background-color: var(--color-gold-600);
+        box-shadow: 0 4px 14px rgba(201, 151, 74, 0.35);
+        transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: scale(0.98); }
+
+    /* Botón secundario — mahogany oscuro */
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1.25rem;
+        background-color: var(--color-mahogany-900);
+        color: var(--color-parchment-100);
+        font-weight: 600;
+        font-size: 0.875rem;
+        letter-spacing: 0.02em;
+        border-radius: 0.75rem;
+        border: none;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .btn-secondary:hover {
+        background-color: var(--color-mahogany-700);
+        box-shadow: 0 4px 14px rgba(28, 20, 16, 0.3);
+    }
+    .btn-secondary:active { transform: scale(0.98); }
+
+    /* Botón fantasma — sin fondo */
+    .btn-ghost {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        color: var(--color-sepia-600);
+        font-weight: 500;
+        font-size: 0.875rem;
+        border-radius: 0.75rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .btn-ghost:hover {
+        color: var(--color-mahogany-900);
+        background-color: var(--color-parchment-200);
+    }
+
+    /* Botón de peligro */
+    .btn-danger {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1.25rem;
+        background-color: #DC2626;
+        color: white;
+        font-weight: 600;
+        font-size: 0.875rem;
+        border-radius: 0.75rem;
+        border: none;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .btn-danger:hover {
+        background-color: #B91C1C;
+        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
+    }
+    .btn-danger:active { transform: scale(0.98); }
+
+    /* Campo de formulario */
+    .form-input {
+        display: block;
+        width: 100%;
+        padding: 0.625rem 1rem;
+        background-color: var(--color-background);
+        border: 1px solid var(--color-parchment-300);
+        border-radius: 0.75rem;
+        color: var(--color-mahogany-900);
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        outline: none;
+    }
+    .form-input:focus {
+        border-color: var(--color-gold-400);
+        box-shadow: 0 0 0 3px rgba(201, 151, 74, 0.15);
+    }
+
+    /* Etiqueta de formulario */
+    .form-label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--color-sepia-500);
+        margin-bottom: 0.375rem;
+    }
+
+    /* Tarjeta */
+    .card {
+        background-color: var(--color-background);
+        border: 1px solid var(--color-parchment-300);
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(44, 32, 24, 0.06), 0 1px 2px rgba(44, 32, 24, 0.04);
+    }
+
+    .card-parchment {
+        background-color: var(--color-parchment-50);
+        border: 1px solid var(--color-parchment-300);
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(44, 32, 24, 0.06);
     }
 }
 

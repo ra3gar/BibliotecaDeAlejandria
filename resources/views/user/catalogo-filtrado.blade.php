@@ -19,7 +19,7 @@
             <p class="text-sepia-400 text-sm mt-1">{{ $books->count() }} {{ $books->count() === 1 ? 'libro encontrado' : 'libros encontrados' }}</p>
         </div>
         <a href="{{ route('catalogo') }}"
-           class="inline-flex items-center gap-2 px-4 py-2 bg-gold-500 hover:bg-gold-400 text-mahogany-900 font-semibold text-sm rounded-lg
+           class="inline-flex items-center gap-2 px-4 py-2 bg-gold-500 hover:bg-gold-400 text-mahogany-900 font-semibold text-sm rounded-xl
                   transition-all duration-200 hover:shadow-md active:scale-[0.98] self-start sm:self-auto">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
@@ -42,7 +42,7 @@
                 <p class="text-mahogany-900 text-lg font-serif font-medium">No se encontraron libros en esta sección.</p>
                 <p class="text-sepia-400 text-sm mt-1">Intenta explorar otra categoría o autor.</p>
                 <a href="{{ route('catalogo') }}"
-                   class="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-gold-500 hover:bg-gold-600 text-mahogany-900 font-semibold text-sm rounded-lg
+                   class="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-gold-500 hover:bg-gold-600 text-mahogany-900 font-semibold text-sm rounded-xl
                           transition-all duration-200 hover:shadow-md active:scale-[0.98]">
                     Ver todo el catálogo
                 </a>
@@ -95,9 +95,12 @@
 </section>
 
 {{-- Explorar por Categoría --}}
-<section class="py-12 bg-parchment-100 border-t border-parchment-300">
+<section class="py-14 bg-parchment-100 border-t border-parchment-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-xl font-serif font-semibold text-mahogany-900 mb-6">Explorar por Categoría</h2>
+        <div class="flex items-center gap-4 mb-7">
+            <div class="w-1 h-7 rounded-full bg-gold-500"></div>
+            <h2 class="text-xl font-serif font-semibold text-mahogany-900">Explorar por Categoría</h2>
+        </div>
 
         @if($categories->isEmpty())
             <p class="text-sepia-400 text-sm">No hay categorías registradas.</p>
@@ -125,9 +128,12 @@
 </section>
 
 {{-- Explorar por Autor --}}
-<section class="py-12 bg-parchment-200">
+<section class="py-14 bg-parchment-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-xl font-serif font-semibold text-mahogany-900 mb-6">Explorar por Autor</h2>
+        <div class="flex items-center gap-4 mb-7">
+            <div class="w-1 h-7 rounded-full bg-gold-500"></div>
+            <h2 class="text-xl font-serif font-semibold text-mahogany-900">Explorar por Autor</h2>
+        </div>
 
         @if($authors->isEmpty())
             <p class="text-sepia-400 text-sm">No hay autores registrados.</p>

@@ -10,8 +10,7 @@
         <p class="text-sm text-sepia-400">{{ $categories->total() }} categorías</p>
     </div>
     <a href="{{ route('admin.categories.create') }}"
-       class="inline-flex items-center gap-2 px-4 py-2 bg-gold-500 hover:bg-gold-600 text-mahogany-900 font-semibold rounded-lg text-sm
-              transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+       class="btn-primary">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
@@ -19,7 +18,7 @@
     </a>
 </div>
 
-<div class="bg-parchment-50 border border-parchment-300 rounded-xl shadow-sm overflow-hidden lib-animate">
+<div class="bg-parchment-50 border border-parchment-300 rounded-2xl shadow-sm overflow-hidden lib-animate">
     <table class="w-full text-sm">
         <thead class="bg-parchment-100 border-b border-parchment-400">
             <tr>
@@ -42,14 +41,14 @@
                 <td class="px-4 py-3">
                     <div class="flex items-center justify-end gap-2">
                         <a href="{{ route('admin.categories.edit', $category) }}"
-                           class="px-3 py-1 text-xs font-medium text-midnight-800 bg-midnight-100 hover:bg-midnight-100/70 rounded-lg transition-colors duration-150">
+                           class="px-3 py-1 text-xs font-medium text-midnight-800 bg-midnight-100 hover:bg-midnight-100/70 rounded-xl transition-colors duration-150">
                             Editar
                         </a>
                         <form method="POST" action="{{ route('admin.categories.destroy', $category) }}"
                               onsubmit="return confirm('¿Eliminar la categoría «{{ $category->name }}»?')">
                             @csrf @method('DELETE')
                             <button type="submit"
-                                    class="px-3 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-150">
+                                    class="px-3 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-xl transition-colors duration-150">
                                 Eliminar
                             </button>
                         </form>

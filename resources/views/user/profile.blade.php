@@ -48,7 +48,7 @@
                     <p class="text-sm">No tienes préstamos registrados.</p>
                 </div>
             @else
-            <div class="bg-parchment-50 border border-parchment-300 rounded-xl overflow-hidden">
+            <div class="bg-parchment-50 border border-parchment-300 rounded-2xl overflow-hidden">
                 <table class="w-full text-sm">
                     <thead class="bg-parchment-100 border-b border-parchment-400">
                         <tr>
@@ -90,7 +90,7 @@
                                         class="mt-1 text-xs text-gold-600 hover:text-gold-700 underline block">
                                     Ver QR
                                 </button>
-                                <div id="qr-{{ $loan->id }}" class="hidden mt-2 p-2 bg-white border border-parchment-300 rounded-lg">
+                                <div id="qr-{{ $loan->id }}" class="hidden mt-2 p-2 bg-white border border-parchment-300 rounded-xl">
                                     {!! QrCode::size(120)->generate(route('admin.loans.show', $loan)) !!}
                                     <p class="text-xs text-sepia-400 text-center mt-1">Presenta en la biblioteca</p>
                                 </div>
@@ -106,7 +106,7 @@
 
         {{-- Tab: Personal info --}}
         <div x-show="tab === 'info'" x-cloak>
-            <div class="bg-parchment-50 border border-parchment-300 rounded-xl p-6">
+            <div class="bg-parchment-50 border border-parchment-300 rounded-2xl p-6">
                 <dl class="divide-y divide-parchment-300">
                     @foreach([
                         ['label' => 'Nombre',    'value' => $user->first_name],

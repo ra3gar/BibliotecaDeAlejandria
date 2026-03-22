@@ -16,8 +16,7 @@ $statusColors = [
 
 {{-- Back + actions bar --}}
 <div class="flex items-center justify-between mb-5 lib-animate">
-    <a href="{{ route('admin.loans.index') }}"
-       class="inline-flex items-center gap-1.5 text-sm text-sepia-500 hover:text-mahogany-900 transition-colors duration-200">
+    <a href="{{ route('admin.loans.index') }}" class="btn-ghost">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
@@ -29,7 +28,7 @@ $statusColors = [
         <form method="POST" action="{{ route('admin.loans.confirm-pickup', $loan) }}">
             @csrf @method('PATCH')
             <button type="submit"
-                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg text-sm
+                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-xl text-sm
                            transition-all duration-200 hover:shadow-sm active:scale-[0.98]">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -43,7 +42,7 @@ $statusColors = [
         <form method="POST" action="{{ route('admin.loans.return', $loan) }}">
             @csrf @method('PATCH')
             <button type="submit"
-                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-sm
+                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl text-sm
                            transition-all duration-200 hover:shadow-sm active:scale-[0.98]">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -57,7 +56,7 @@ $statusColors = [
               onsubmit="return confirm('¿Eliminar este préstamo? Esta acción no se puede deshacer.')">
             @csrf @method('DELETE')
             <button type="submit"
-                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 font-semibold rounded-lg text-sm
+                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 font-semibold rounded-xl text-sm
                            border border-red-200 transition-all duration-200 active:scale-[0.98]">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -74,7 +73,7 @@ $statusColors = [
     <div class="lg:col-span-1 space-y-5">
 
         {{-- Estado del préstamo --}}
-        <div class="bg-parchment-50 border border-parchment-300 rounded-xl shadow-sm p-5">
+        <div class="bg-parchment-50 border border-parchment-300 rounded-2xl shadow-sm p-5">
             <h3 class="text-xs font-semibold text-sepia-400 uppercase tracking-widest mb-4">Préstamo #{{ $loan->id }}</h3>
 
             <div class="space-y-3">
@@ -118,7 +117,7 @@ $statusColors = [
         @endif
 
         {{-- Datos del usuario --}}
-        <div class="bg-parchment-50 border border-parchment-300 rounded-xl shadow-sm p-5">
+        <div class="bg-parchment-50 border border-parchment-300 rounded-2xl shadow-sm p-5">
             <h3 class="text-xs font-semibold text-sepia-400 uppercase tracking-widest mb-4">Usuario</h3>
 
             <div class="flex items-center gap-3 mb-4">
@@ -140,7 +139,7 @@ $statusColors = [
 
     {{-- Right column: Book info --}}
     <div class="lg:col-span-2">
-        <div class="bg-parchment-50 border border-parchment-300 rounded-xl shadow-sm p-5">
+        <div class="bg-parchment-50 border border-parchment-300 rounded-2xl shadow-sm p-5">
             <h3 class="text-xs font-semibold text-sepia-400 uppercase tracking-widest mb-4">Libro prestado</h3>
 
             <div class="flex gap-5">

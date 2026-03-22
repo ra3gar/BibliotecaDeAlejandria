@@ -1,6 +1,9 @@
 # Biblioteca de Alejandría
 
-Sistema de gestión de biblioteca física con préstamos híbridos (presencial + web + QR), desarrollado como proyecto universitario para la materia **Programación Aplicada 1** — Universidad UPED 2026.
+Sistema de gestión de biblioteca física con **préstamos híbridos** (reserva online + verificación presencial por código QR), desarrollado como proyecto universitario para la materia **Programación Aplicada 1** — Universidad UPED 2026.
+
+El proyecto digitaliza el flujo completo de préstamo de una biblioteca real:
+un usuario reserva desde el catálogo web, se genera un QR único, lo presenta en mostrador y el administrador confirma la entrega y la devolución. Todo queda auditado.
 
 ---
 
@@ -36,6 +39,9 @@ Sistema de gestión de biblioteca física con préstamos híbridos (presencial +
 ---
 
 ## Instalación — Paso a paso
+
+> Para una guía más detallada con troubleshooting y opciones avanzadas,
+> consulta `GUIAS/ConexionaBD.txt`.
 
 ### Paso 1 — Clonar el repositorio
 
@@ -173,10 +179,14 @@ php artisan db
 
 ## Usuarios de prueba
 
-| Email | Contraseña | Rol | Panel de acceso |
-|---|---|---|---|
-| `admin@biblioteca.com` | `password` | admin | `/admin/dashboard` |
-| `user@biblioteca.com` | `password` | user | `/catalogo` |
+| Email | Contraseña | Rol | Panel de acceso | Notas |
+|---|---|---|---|---|
+| `admin@biblioteca.com` | `password` | admin | `/admin/dashboard` | Acceso total al sistema |
+| `user@biblioteca.com` | `password` | user | `/catalogo` | Sin `birth_date` — la validación de edad se omite |
+| `adulto@biblioteca.com` | `password` | user | `/catalogo` | Con 20 años calculados — para probar `min_age` |
+
+> El tercer usuario se inserta solo con el SQL manual en `GUIAS/Usuarios predeterminados del sistema.sql`,
+> no con el seeder estándar. Útil para probar el rechazo por edad mínima en préstamos.
 
 ---
 

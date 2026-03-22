@@ -5,15 +5,22 @@
 @section('content')
 
 @if(session('success'))
-<div class="mb-4 p-3 bg-parchment-50 border border-gold-500 rounded-lg text-sm text-sepia-600 flex items-center gap-2">
-    <svg class="w-4 h-4 text-gold-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-    </svg>
+<div class="mb-5 px-4 py-3 bg-parchment-50 border border-gold-400/50 rounded-xl text-sm text-sepia-700 flex items-center gap-3 lib-animate">
+    <span class="flex-shrink-0 w-7 h-7 rounded-full bg-gold-500/15 flex items-center justify-center">
+        <svg class="w-4 h-4 text-gold-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+    </span>
     {{ session('success') }}
 </div>
 @endif
 @if(session('error'))
-<div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+<div class="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-center gap-3 lib-animate">
+    <span class="flex-shrink-0 w-7 h-7 rounded-full bg-red-100 flex items-center justify-center">
+        <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+    </span>
     {{ session('error') }}
 </div>
 @endif
@@ -24,8 +31,7 @@
         <p class="text-sm text-sepia-400">{{ $users->total() }} usuarios registrados</p>
     </div>
     <a href="{{ route('admin.users.create') }}"
-       class="inline-flex items-center gap-2 px-4 py-2 bg-gold-500 hover:bg-gold-600 text-mahogany-900 font-semibold rounded-lg text-sm
-              transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+       class="btn-primary">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
@@ -33,7 +39,7 @@
     </a>
 </div>
 
-<div class="bg-parchment-50 border border-parchment-300 rounded-xl shadow-sm overflow-hidden lib-animate">
+<div class="bg-parchment-50 border border-parchment-300 rounded-2xl shadow-sm overflow-hidden lib-animate">
     <div class="overflow-x-auto">
     <table class="w-full text-sm">
         <thead class="bg-parchment-100 border-b border-parchment-400">
@@ -81,7 +87,7 @@
                 <td class="px-4 py-3">
                     <div class="flex items-center justify-end gap-2 flex-wrap">
                         <a href="{{ route('admin.users.edit', $user) }}"
-                           class="px-3 py-1 text-xs font-medium text-midnight-800 bg-midnight-100 hover:bg-midnight-100/70 rounded-lg transition-colors duration-150">
+                           class="px-3 py-1 text-xs font-medium text-midnight-800 bg-midnight-100 hover:bg-midnight-100/70 rounded-xl transition-colors duration-150">
                             Editar
                         </a>
 
@@ -89,7 +95,7 @@
                         <form method="POST" action="{{ route('admin.users.toggle-active', $user) }}">
                             @csrf @method('PATCH')
                             <button type="submit"
-                                    class="px-3 py-1 text-xs font-medium rounded-lg transition-colors duration-150
+                                    class="px-3 py-1 text-xs font-medium rounded-xl transition-colors duration-150
                                            {{ $user->is_active
                                                ? 'text-orange-700 bg-orange-50 hover:bg-orange-100'
                                                : 'text-green-700 bg-green-50 hover:bg-green-100' }}">
@@ -101,7 +107,7 @@
                               onsubmit="return confirm('¿Eliminar a {{ $user->full_name }}?')">
                             @csrf @method('DELETE')
                             <button type="submit"
-                                    class="px-3 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-150">
+                                    class="px-3 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-xl transition-colors duration-150">
                                 Eliminar
                             </button>
                         </form>

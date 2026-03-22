@@ -1,122 +1,221 @@
 ====================================================================
-  GUÍA: CONFIGURACIÓN DE CONEXIÓN A BASE DE DATOS
-  Proyecto: BibliotecaDeAlejandria — Laravel 12
+  GUÍA DE CONFIGURACIÓN — BASE DE DATOS Y ARRANQUE DEL PROYECTO
+  Biblioteca de Alejandría — Laravel 12 + MySQL 8 + Vite 7
   Universidad UPED 2026 — Programación Aplicada 1
-  Actualizado: 2026-03-21
+  Actualizado: 2026-03-22
 ====================================================================
 
-Esta guía explica cómo configurar la conexión a la base de datos
-y levantar el proyecto por primera vez desde cero.
+Esta guía lleva al desarrollador desde cero —máquina limpia con solo
+PHP, Composer, Node y MySQL instalados— hasta tener la aplicación
+corriendo completamente en http://localhost:8000.
+
+Léela una vez completa antes de empezar. Cada paso depende del anterior.
 
 --------------------------------------------------------------------
-ARCHIVOS INVOLUCRADOS
+ARCHIVOS INVOLUCRADOS EN LA CONFIGURACIÓN DE BASE DE DATOS
 --------------------------------------------------------------------
 
-1. .env                ← Aquí van los valores reales (host, usuario, password)
-2. config/database.php ← Define cómo Laravel interpreta esas variables
+  Archivo              Propósito
+  ─────────────────────────────────────────────────────────────────
+  .env                 Credenciales reales (host, usuario, password).
+                       NUNCA se sube al repositorio (está en .gitignore).
 
-Regla de oro: NUNCA pongas credenciales directamente en
-config/database.php. Siempre usa el archivo .env.
-El archivo .env está en el .gitignore y no se sube al repositorio.
+  .env.example         Plantilla con los nombres de las variables, sin
+                       valores sensibles. Sí se versiona en Git. Es la
+                       plantilla de la que se copia .env.
+
+  config/database.php  Le dice a Laravel cómo interpretar las variables
+                       del .env. No edites este archivo directamente
+                       — actúa solo como mapeador de variables de entorno.
+
+  database/migrations/ Las 17 migraciones que definen el esquema real de
+                       la base de datos. Son el "código fuente" de las
+                       tablas. Siempre úsalas en lugar de CREATE TABLE manuales.
+
+  Regla de oro: las credenciales viven en .env y .env NUNCA se sube a Git.
+
 
 --------------------------------------------------------------------
-PASO 1 — CREAR LA BASE DE DATOS EN MySQL
+PASO 0 — VERIFICAR PREREQUISITES DEL SISTEMA
 --------------------------------------------------------------------
 
-Antes de configurar el .env, crea la base de datos en MySQL.
-Puedes hacerlo desde cualquiera de estas opciones:
+Antes de clonar, confirma que tienes todo instalado:
 
-  a) MySQL Workbench → New Schema → nombre: biblioteca_alejandria → Apply
-  b) phpMyAdmin → Nueva → nombre: biblioteca_alejandria → Crear
-  c) Terminal MySQL (escribe esto después de conectarte):
+  php -v         → debe mostrar PHP 8.2.x o superior
+  composer -V    → debe mostrar Composer 2.x
+  node -v        → debe mostrar v18.x o superior (recomendado v20 LTS)
+  npm -v         → debe mostrar 9.x o superior
+  mysql -V       → debe mostrar MySQL 8.0.x
 
-        CREATE DATABASE biblioteca_alejandria
-            CHARACTER SET utf8mb4
-            COLLATE utf8mb4_unicode_ci;
+Extensiones PHP requeridas (actívalas en php.ini si están comentadas):
 
-  El nombre debe coincidir exactamente con DB_DATABASE en el .env.
+  extension=pdo_mysql   ← Conexión a MySQL
+  extension=mbstring    ← Soporte de caracteres UTF-8 / multibyte
+  extension=openssl     ← Encriptación de sesiones y contraseñas
+  extension=fileinfo    ← Detección de tipo MIME en subidas de archivos
+  extension=gd          ← Procesamiento de imágenes (portadas y fotos)
 
-  ¿Por qué utf8mb4?
-  Porque es el único charset que soporta tildes (á, é, ñ), comillas
-  tipográficas y emojis sin problemas de codificación. utf8 estándar
-  en MySQL no cubre todos esos caracteres.
+  En Windows: las extensiones están en C:\php\php.ini
+  En Linux/Mac: php --ini te muestra la ruta del archivo activo
+
+
+--------------------------------------------------------------------
+PASO 1 — CREAR LA BASE DE DATOS EN MYSQL
+--------------------------------------------------------------------
+
+Crea la base de datos ANTES de configurar el .env y de ejecutar
+las migraciones. Laravel no crea la base de datos sola — solo crea
+las tablas dentro de una BD que ya debe existir.
+
+Tres formas equivalentes de crear la BD:
+
+  a) MySQL Workbench:
+       Menú: Database → Create Schema
+       Nombre: biblioteca_alejandria
+       Charset: utf8mb4 / Collation: utf8mb4_unicode_ci
+       Clic: Apply
+
+  b) phpMyAdmin:
+       Pestaña "Nueva" → Nombre: biblioteca_alejandria
+       Cotejamiento: utf8mb4_unicode_ci → Crear
+
+  c) Terminal MySQL (recomendado para familiarizarse con SQL):
+
+       mysql -u root -p
+       [escribe tu contraseña de MySQL]
+
+       mysql> CREATE DATABASE biblioteca_alejandria
+                  CHARACTER SET utf8mb4
+                  COLLATE utf8mb4_unicode_ci;
+
+       mysql> SHOW DATABASES;   -- Verifica que aparece en la lista
+       mysql> EXIT;
+
+¿Por qué utf8mb4 y no utf8 estándar?
+  MySQL tiene un bug histórico: su "utf8" solo soporta 3 bytes por
+  carácter, lo que excluye emojis y algunos caracteres especiales.
+  utf8mb4 es la implementación correcta y completa de Unicode,
+  necesaria para almacenar tildes, la ñ y cualquier carácter del
+  mundo sin corrupciones de datos.
+
 
 --------------------------------------------------------------------
 PASO 2 — CONFIGURAR EL ARCHIVO .env
 --------------------------------------------------------------------
 
-El archivo .env está en la raíz del proyecto:
+El archivo .env está en la raíz del proyecto. Si no existe:
 
-    BibliotecaDeAlejandria/
-    └── .env   ← este archivo (puede estar oculto)
+    cp .env.example .env      (Linux / Mac / Git Bash)
+    copy .env.example .env    (Windows CMD)
 
-Si no existe, cópialo desde la plantilla:
+NOTA: En Windows, los archivos que empiezan con punto pueden estar
+ocultos en el Explorador. Activa "Mostrar archivos ocultos" en:
+Vista → Mostrar → Elementos ocultos.
 
-    cp .env.example .env
-
-  NOTA: Si no ves el archivo en el explorador de archivos, activa
-  "Mostrar archivos ocultos" — los archivos que empiezan con punto
-  están ocultos por defecto en Windows, Mac y Linux.
-
-Edita .env con tu editor y ajusta las variables DB_*:
+Abre .env con cualquier editor de texto y ajusta las variables DB_*:
 
     DB_CONNECTION=mysql
-    DB_HOST=127.0.0.1       ← IP del servidor MySQL (127.0.0.1 = local)
-    DB_PORT=3306             ← Puerto de MySQL (3306 por defecto)
+    DB_HOST=127.0.0.1          ← IP del servidor MySQL (127.0.0.1 = local)
+    DB_PORT=3306                ← Puerto estándar de MySQL (no cambiar salvo que uses otro)
     DB_DATABASE=biblioteca_alejandria
-    DB_USERNAME=root         ← Tu usuario de MySQL
-    DB_PASSWORD=             ← Tu contraseña (dejar vacío si no tiene)
+    DB_USERNAME=root            ← Tu usuario MySQL
+    DB_PASSWORD=                ← Tu contraseña MySQL (vacío si no tiene)
 
-Ejemplo con contraseña configurada:
+Ejemplo completo con contraseña:
 
     DB_CONNECTION=mysql
     DB_HOST=127.0.0.1
     DB_PORT=3306
     DB_DATABASE=biblioteca_alejandria
     DB_USERNAME=root
-    DB_PASSWORD=mi_contrasena_secreta
+    DB_PASSWORD=miContraseñaSegura2026
+
+Variables adicionales importantes del .env:
+
+    APP_NAME="Biblioteca de Alejandría"
+    APP_ENV=local               ← Cambia a 'production' para despliegue real
+    APP_DEBUG=true              ← Cambia a 'false' en producción
+    APP_URL=http://localhost:8000
+
+    SESSION_DRIVER=database     ← Las sesiones se guardan en la tabla 'sessions'
+    CACHE_STORE=database        ← La caché se guarda en la tabla 'cache'
+    QUEUE_CONNECTION=database   ← Los jobs se guardan en la tabla 'jobs'
+
+Importante: después de editar .env, limpia la caché de configuración:
+
+    php artisan config:clear
+
 
 --------------------------------------------------------------------
-PASO 3 — INSTALAR DEPENDENCIAS Y EJECUTAR MIGRACIONES
+PASO 3 — INSTALAR DEPENDENCIAS Y CREAR LAS TABLAS
 --------------------------------------------------------------------
 
-Con el .env configurado, ejecuta desde la raíz del proyecto:
+Con la BD creada y el .env configurado, ejecuta desde la raíz:
 
     composer setup
 
-Este comando automatiza toda la instalación en una sola línea:
-  1. composer install         → descarga e instala los paquetes PHP
-  2. php artisan key:generate → genera APP_KEY única para la app
-  3. php artisan migrate      → crea las 17 tablas en MySQL
-  4. npm install              → instala los paquetes de Node.js
-  5. npm run build            → compila CSS (Tailwind) y JS (Vite)
+Este comando está definido en composer.json y hace TODO de una vez:
+
+  1. composer install         → descarga los paquetes PHP de vendor/
+                                 incluye: Laravel 12, simplesoftwareio/simple-qrcode,
+                                 vlucas/phpdotenv, ramsey/uuid y ~80 dependencias más
+  2. php artisan key:generate → genera APP_KEY (la clave de encriptación de sesiones)
+                                 Sin APP_KEY la aplicación no arranca
+  3. php artisan migrate      → crea las 17 tablas en MySQL usando las migraciones
+  4. npm install              → descarga los paquetes Node.js de node_modules/
+                                 incluye: Tailwind CSS v4, Vite 7, Alpine.js y dependencias
+  5. npm run build            → compila app.css (Tailwind) y app.js con Vite
+                                 genera los archivos en public/build/
+
+Si prefieres ejecutarlos uno a uno para ver qué hace cada paso:
+
+    composer install
+    php artisan key:generate
+    php artisan migrate
+    npm install
+    npm run build
+
 
 --------------------------------------------------------------------
 PASO 4 — ENLAZAR EL ALMACENAMIENTO PÚBLICO ⚠️ OBLIGATORIO
 --------------------------------------------------------------------
 
-Ejecuta este comando una sola vez después de la instalación:
+Ejecuta este comando UNA SOLA VEZ después de la instalación:
 
     php artisan storage:link
 
-Crea un enlace simbólico entre:
+¿Qué hace? Crea un enlace simbólico (acceso directo) entre:
   storage/app/public/  →  public/storage/
 
-Sin este enlace las portadas de libros y fotos de autores
-NO se mostrarán en el navegador (las imágenes darán error 404).
+Sin este enlace, las portadas de libros (storage/app/public/books/)
+y las fotos de autores (storage/app/public/authors/) NO serán
+accesibles desde el navegador — verás imágenes rotas.
+
+Para verificar que el enlace existe:
+  • Windows: busca la carpeta public/storage/ en el explorador
+  • Linux/Mac: ls -la public/ → debe mostrar "storage -> ..."
+
+Si el enlace ya existe y el comando da error, es normal. Puedes
+ignorar el error "The [public/storage] link already exists."
+
 
 --------------------------------------------------------------------
-PASO 5 — SEMBRAR DATOS DE PRUEBA (opcional pero recomendado)
+PASO 5 — SEMBRAR DATOS DE PRUEBA (recomendado para desarrollo)
 --------------------------------------------------------------------
 
     php artisan db:seed
 
-Crea los siguientes usuarios de prueba con contraseña hasheada:
+Ejecuta DatabaseSeeder y crea los usuarios de prueba iniciales.
+Las contraseñas se hashean correctamente con bcrypt (cost=12).
 
-  admin@biblioteca.com / password  →  rol: admin  (panel completo)
-  user@biblioteca.com  / password  →  rol: user   (catálogo y perfil)
+Usuarios creados:
 
-Para migrar y sembrar todo en un solo comando:
+  Email                    | Contraseña | Rol   | Panel
+  ─────────────────────────┼────────────┼───────┼──────────────────────
+  admin@biblioteca.com     | password   | admin | /admin/dashboard
+  user@biblioteca.com      | password   | user  | /catalogo
+
+Para hacer todo en un solo comando (migrar + sembrar):
 
     php artisan migrate --seed
 
@@ -124,8 +223,10 @@ Para borrar todo y empezar absolutamente desde cero:
 
     php artisan migrate:fresh --seed
 
-  ⚠️  migrate:fresh ELIMINA todas las tablas y datos existentes.
-      Úsalo solo en desarrollo, nunca en producción.
+  ⚠️  migrate:fresh DESTRUYE todas las tablas y datos existentes.
+      Úsalo únicamente en entorno de desarrollo.
+      NUNCA en producción — perderás todos los datos reales.
+
 
 --------------------------------------------------------------------
 PASO 6 — ARRANCAR EL ENTORNO DE DESARROLLO
@@ -133,210 +234,117 @@ PASO 6 — ARRANCAR EL ENTORNO DE DESARROLLO
 
     composer dev
 
-Este comando lanza tres procesos simultáneamente con concurrently:
-  • php artisan serve        → servidor PHP en http://localhost:8000
-  • npm run dev              → Vite con hot reload en localhost:5173
-  • php artisan queue:listen → procesador de colas en background
+Este comando lanza TRES procesos simultáneos en una sola terminal
+usando el paquete concurrently:
+
+  Proceso 1: php artisan serve
+    → Servidor PHP integrado en http://localhost:8000
+    → Procesa todas las requests HTTP de la aplicación
+
+  Proceso 2: npm run dev
+    → Vite en modo desarrollo en http://localhost:5173
+    → Hot Module Replacement (HMR): los cambios en CSS/JS
+      se reflejan en el navegador SIN recargar la página
+
+  Proceso 3: php artisan queue:listen
+    → Procesador de colas en segundo plano
+    → Ejecuta los jobs encolados (emails, tareas pesadas)
 
 Para acceder a la aplicación: http://localhost:8000
+Para detener todo: Ctrl+C — cierra los 3 procesos juntos.
 
-Para detener todo: Ctrl+C — cierra los 3 procesos a la vez.
+⚠️  NO ejecutes php artisan serve por separado mientras
+    composer dev está activo. Ya lo incluye y causarán conflicto
+    en el puerto 8000.
 
-⚠️  NO ejecutes php artisan serve por separado mientras composer dev
-    está activo — ya lo incluye y causan conflicto de puertos.
+⚠️  Si después de reiniciar el servidor los estilos no cargan,
+    puede haber quedado un archivo residual de Vite:
 
-⚠️  Si los estilos no cargan después de reiniciar el servidor,
-    puede quedar un archivo residual de Vite. Elimínalo con:
-        rm public/hot         (Linux / Mac / Git Bash)
-        del public\hot        (Windows CMD o PowerShell)
+    rm public/hot         (Linux / Mac / Git Bash)
+    del public\hot        (Windows CMD o PowerShell)
 
---------------------------------------------------------------------
-CAMBIAR A SQLite (solo para pruebas rápidas sin MySQL)
---------------------------------------------------------------------
+    Luego reinicia con composer dev.
 
-SQLite no requiere instalar ningún servidor de base de datos.
-Cambia una sola línea en el .env:
-
-    DB_CONNECTION=sqlite
-
-Y comenta o elimina las variables DB_HOST, DB_PORT, DB_DATABASE,
-DB_USERNAME y DB_PASSWORD. Laravel creará automáticamente el archivo:
-
-    database/database.sqlite
-
-Ejecuta las migraciones normalmente:
-
-    php artisan migrate --seed
-
-  Nota: Las pruebas automatizadas (composer test) ya usan SQLite
-  en memoria automáticamente. No necesitas cambiar el .env para eso.
 
 --------------------------------------------------------------------
-VERIFICAR LA CONEXIÓN
+CAMBIAR A SQLite (entorno de pruebas rápidas sin MySQL)
+--------------------------------------------------------------------
+
+SQLite no requiere instalar ni configurar ningún servidor.
+Es ideal para demostraciones rápidas o para contribuidores nuevos.
+
+Pasos:
+  1. Edita el .env y cambia:
+
+       DB_CONNECTION=sqlite
+
+     Comenta o elimina las demás variables DB_*:
+
+       # DB_HOST=127.0.0.1
+       # DB_PORT=3306
+       # DB_DATABASE=biblioteca_alejandria
+       # DB_USERNAME=root
+       # DB_PASSWORD=
+
+  2. Laravel creará automáticamente el archivo:
+       database/database.sqlite
+
+  3. Ejecuta las migraciones:
+       php artisan migrate --seed
+
+Nota importante: Las pruebas automatizadas (composer test / php artisan test)
+ya usan SQLite en memoria automáticamente gracias a phpunit.xml.
+No necesitas cambiar el .env para ejecutar el test suite.
+
+
+--------------------------------------------------------------------
+VERIFICAR LA CONEXIÓN A BASE DE DATOS
 --------------------------------------------------------------------
 
 Para confirmar que Laravel conecta correctamente con MySQL:
 
     php artisan db
 
-Si abre una sesión interactiva de MySQL, ¡todo funciona!
-Si da error, revisa que:
-  • El servicio de MySQL esté corriendo (en Windows: Servicios → MySQL)
-  • El nombre de la BD, usuario y contraseña en .env sean correctos
-  • El puerto 3306 no esté bloqueado por el firewall
+Si se abre una sesión interactiva de MySQL → ¡la conexión funciona!
+
+Si da error "Connection refused", verifica:
+  • El servicio MySQL está corriendo
+    Windows: Servicios (services.msc) → busca "MySQL80" → Iniciar
+    Linux:   sudo systemctl start mysql
+    Mac:     brew services start mysql
+  • El nombre de la BD, usuario y contraseña en .env son correctos
+  • El puerto 3306 no está bloqueado (prueba: telnet 127.0.0.1 3306)
+
+Para verificar que las tablas se crearon correctamente:
+
+    php artisan db
+    mysql> SHOW TABLES;           -- Debe listar las 11 tablas del sistema
+    mysql> DESCRIBE book_store_users;   -- Muestra columnas de la tabla de usuarios
+    mysql> EXIT;
+
+Tablas esperadas tras migrate:
+  audit_logs, book_author, book_store_users, books, cache,
+  categories, jobs, loans, migrations, password_reset_tokens,
+  sessions, authors
+
+
+--------------------------------------------------------------------
+LIMPIAR CACHÉS DESPUÉS DE CAMBIOS EN .env O CONFIGURACIÓN
+--------------------------------------------------------------------
+
+Cuando cambias variables en .env o archivos en config/, Laravel puede
+usar valores cacheados y no ver los cambios. Limpia así:
+
+    php artisan config:clear    → limpia caché de configuración
+    php artisan cache:clear     → limpia caché de la aplicación
+    php artisan view:clear      → limpia vistas Blade precompiladas
+    php artisan route:clear     → limpia caché de rutas
+
+Atajo para limpiar todo de una vez:
+
+    php artisan optimize:clear
+
 
 ====================================================================
-  ESQUEMA DE TABLAS — Estado actual (2026-03-21)
-  17 migraciones aplicadas
-====================================================================
-
---------------------------------------------------------------------
-book_store_users — Usuarios del sistema
---------------------------------------------------------------------
-
-  id              BIGINT UNSIGNED PK  auto-increment
-  first_name      VARCHAR(255)        requerido
-  last_name       VARCHAR(255)        requerido
-  email           VARCHAR(255)        UNIQUE, requerido
-  password        VARCHAR(255)        hash bcrypt (nunca texto plano)
-  role            ENUM('admin','user') default: 'user'
-  is_active       TINYINT(1)          default: 1 (true = activo)
-  birth_date      DATE                nullable — para restricción de edad
-  remember_token  VARCHAR(100)        nullable
-  created_at / updated_at  TIMESTAMP  timestamps de Laravel
-
-  Helpers en el modelo User:
-    $user->full_name  → "Nombre Apellido" (accesor)
-    $user->isAdmin()  → true si role = 'admin'
-    $user->isActive() → true si is_active = 1
-    $user->age()      → edad en años (int) o null si birth_date es NULL
-
-  Tablas auxiliares de Laravel: password_reset_tokens, sessions,
-  cache, jobs (creadas por las migraciones base de Laravel).
-
---------------------------------------------------------------------
-categories — Categorías de libros
---------------------------------------------------------------------
-
-  id              BIGINT UNSIGNED PK
-  name            VARCHAR(255)
-  description     TEXT               nullable
-  created_at / updated_at  TIMESTAMP
-
---------------------------------------------------------------------
-authors — Autores
---------------------------------------------------------------------
-
-  id              BIGINT UNSIGNED PK
-  first_name      VARCHAR(255)
-  last_name       VARCHAR(255)
-  bio             TEXT               nullable — biografía larga del autor
-  photo_path      VARCHAR(255)       nullable — ruta en storage/app/public/authors/
-  created_at / updated_at  TIMESTAMP
-
-  Accesor: $author->photo_url → URL pública si tiene foto, null si no
-  Formatos de foto aceptados: jpeg, jpg, png  |  Máximo: 2 MB
-  Al actualizar foto: la foto anterior se elimina del disco
-  Al eliminar autor: su foto se elimina del disco automáticamente
-
---------------------------------------------------------------------
-books — Libros
---------------------------------------------------------------------
-
-  id               BIGINT UNSIGNED PK
-  category_id      BIGINT UNSIGNED FK → categories.id (SET NULL ON DELETE)
-  title            VARCHAR(255)        requerido
-  isbn             VARCHAR(20)         UNIQUE, nullable
-  summary          TEXT                nullable — sinopsis del libro
-  publisher        VARCHAR(150)        nullable — nombre de la editorial
-  book_cover       VARCHAR(255)        nullable — ruta en storage/app/public/books/
-  published_at     DATE                nullable — fecha de publicación
-  año              INT                 nullable — derivado de published_at al guardar
-  stock_total      INT UNSIGNED        default: 0 — ejemplares físicos totales
-  available_copies INT UNSIGNED        default: 0 — ejemplares disponibles ahora
-  min_age          INT UNSIGNED        default: 0 — edad mínima (0 = sin restricción)
-  created_at / updated_at  TIMESTAMP
-
-  Campos eliminados (migración 2026_03_15_000001):
-    codigo_interno → en desuso, nunca se usó activamente
-    path_pdf       → préstamo digital descartado del alcance
-
-  Helper: $book->isAvailable() → true si available_copies > 0
-
---------------------------------------------------------------------
-book_author — Tabla pivote libros ↔ autores (Muchos a Muchos)
---------------------------------------------------------------------
-
-  book_id         BIGINT UNSIGNED FK → books.id   (CASCADE ON DELETE)
-  author_id       BIGINT UNSIGNED FK → authors.id (CASCADE ON DELETE)
-  PK compuesta: (book_id, author_id)
-  Sin timestamps ni id propio.
-  Se gestiona vía $book->authors()->sync([...]) en el controlador.
-
---------------------------------------------------------------------
-loans — Préstamos (con flujo híbrido QR)
---------------------------------------------------------------------
-
-  id              BIGINT UNSIGNED PK
-  user_id         BIGINT UNSIGNED FK → book_store_users.id (CASCADE ON DELETE)
-  book_id         BIGINT UNSIGNED FK → books.id            (CASCADE ON DELETE)
-  status          ENUM('pending','active','returned','overdue')  default: 'pending'
-  loan_date       DATE               requerido — fecha de la reserva
-  return_date     DATE               nullable  — se rellena al marcar devuelto
-  qr_token        VARCHAR(255)       UNIQUE, nullable — UUID para verificación
-  created_at / updated_at  TIMESTAMP
-
-  Flujo completo:
-    Usuario reserva online       → status = 'pending'  (stock decrementa aquí)
-    Muestra QR en la biblioteca
-    Admin confirma entrega       → status = 'active'   (auditado)
-    Usuario devuelve el libro
-    Admin marca devuelto         → status = 'returned' (stock incrementa aquí, auditado)
-    Si no devuelve a tiempo      → status = 'overdue'  (manual)
-
-  Restricción de edad:
-    Si min_age > 0: se valida que el usuario tenga al menos esa edad
-    Si el usuario no tiene birth_date: la validación se omite
-
-  Guard anti-duplicados:
-    Un usuario no puede tener dos reservas 'pending' o 'active'
-    del mismo libro al mismo tiempo
-
---------------------------------------------------------------------
-audit_logs — Auditoría del sistema
---------------------------------------------------------------------
-
-  id              BIGINT UNSIGNED PK
-  user_id         BIGINT UNSIGNED FK → book_store_users.id (SET NULL), nullable
-  action          VARCHAR(50)        created | updated | deleted | login_failed
-  model_type      VARCHAR(100)       'Book' | 'Loan' | 'Auth'
-  model_id        BIGINT UNSIGNED    nullable (NULL en login_failed)
-  description     VARCHAR(255)       descripción legible del evento
-  created_at      TIMESTAMP          automático (useCurrent())
-  — SIN updated_at por diseño: los logs son inmutables —
-
-  Disparadores automáticos:
-    • BookObserver   → created, updated, deleted al gestionar libros
-    • AuthController → login_failed (guarda email e IP del intento)
-    • LoanController → updated al confirmar entrega (pending→active)
-                       updated al registrar devolución (→returned)
-
-  Los últimos 8 registros se muestran en el dashboard del admin.
-
-====================================================================
-  RECURSOS ESTÁTICOS DEL SITIO (public/images/)
-====================================================================
-
-  Estos archivos NO pasan por Storage::disk — se sirven directamente
-  desde la carpeta public/ y se referencian con asset() en Blade.
-
-  logo.png   → Logo del sistema (header admin, navbar usuario, login)
-  Fondo.png  → Imagen de fondo de la pantalla de login
-  Fondo2.jpg → Imagen de fondo del panel de admin y catálogo usuario
-
-  Para agregar una imagen estática: colócala en public/images/ y
-  referencíala con: {{ asset('images/nombre.ext') }}
-
-====================================================================
-  Proyecto: BibliotecaDeAlejandria | Universidad UPED 2026
+  Biblioteca de Alejandría | Universidad UPED 2026
 ====================================================================

@@ -49,12 +49,42 @@ php artisan migrate:fresh --seed
 | Backend | PHP + Laravel | ^8.2 / 12 |
 | Base de datos | MySQL (desarrollo) | 8.0 |
 | Base de datos | SQLite en memoria (pruebas) | — |
-| Frontend | Vite + Tailwind CSS | 7 / v4 |
+| Frontend | Vite + Tailwind CSS v4 + Alpine.js | 7 / v4 / 3.x |
+| Tipografía | Inter (sans) + Playfair Display (serif) | Google Fonts |
 | QR | simplesoftwareio/simple-qrcode | ^4.2 |
 | Testing | PHPUnit via `php artisan test` | ^11.5.3 |
 | Linter | Laravel Pint | — |
 
 > Las pruebas usan SQLite en memoria con `BCRYPT_ROUNDS=4`. No requieren cambios en `.env`.
+
+### Sistema de diseño — Tailwind CSS v4
+
+Los tokens de diseño se definen en `resources/css/app.css` mediante el bloque `@theme {}`.
+El tema se llama **Códice Antiguo** y usa la paleta:
+
+| Token de utilidad | Variable CSS | Valor |
+|---|---|---|
+| `mahogany-{50..950}` | `--color-mahogany-*` | Caoba oscuro — fondos de sidebar y navbar |
+| `gold-{300..700}` | `--color-gold-*` | Oro ámbar — botones primarios y acentos |
+| `parchment-{50..500}` | `--color-parchment-*` | Pergamino — fondos de cards y páginas |
+| `sepia-{300..700}` | `--color-sepia-*` | Tierra — texto secundario y labels |
+| `midnight-{100..900}` | `--color-midnight-*` | Azul medianoche — badges y acciones neutras |
+
+**Alias semánticos** (definidos en `:root`, no en `@theme` para evitar conflictos con namespaces reservados de Tailwind):
+
+```css
+--color-background: #FAF6EE;   /* parchment-100 — fondo general */
+--color-primary:    #1C1410;   /* mahogany-900  — texto principal */
+--color-accent:     #C9974A;   /* gold-500      — acciones destacadas */
+--color-text-main:  #3C2E22;   /* sepia-700     — cuerpo de texto */
+```
+
+Uso en Blade: `bg-(--color-background)`, `text-(--color-primary)`, etc.
+
+**Componentes CSS reutilizables** (en `@layer components`):
+`.btn-primary`, `.btn-secondary`, `.btn-ghost`, `.btn-danger`, `.form-input`, `.form-label`, `.card`, `.card-parchment`
+
+**Animaciones**: `.lib-animate` (fade-up individual) y `.lib-stagger` (entrada escalonada para grids)
 
 ---
 
