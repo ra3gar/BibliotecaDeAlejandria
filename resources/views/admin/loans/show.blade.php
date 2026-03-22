@@ -5,8 +5,9 @@
 @section('content')
 
 @php
-$statusLabels = ['active' => 'Activo', 'returned' => 'Devuelto', 'overdue' => 'Vencido'];
+$statusLabels = ['pending' => 'Pendiente', 'active' => 'Activo', 'returned' => 'Devuelto', 'overdue' => 'Vencido'];
 $statusColors = [
+    'pending'  => 'bg-yellow-100 text-yellow-800 border-yellow-200',
     'active'   => 'bg-green-100 text-green-800 border-green-200',
     'returned' => 'bg-blue-100 text-blue-800 border-blue-200',
     'overdue'  => 'bg-red-100 text-red-800 border-red-200',
@@ -24,6 +25,20 @@ $statusColors = [
     </a>
 
     <div class="flex items-center gap-2">
+        @if($loan->status === 'pending')
+        <form method="POST" action="{{ route('admin.loans.confirm-pickup', $loan) }}">
+            @csrf @method('PATCH')
+            <button type="submit"
+                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg text-sm
+                           transition-all duration-200 hover:shadow-sm active:scale-[0.98]">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Confirmar entrega
+            </button>
+        </form>
+        @endif
+
         @if($loan->status !== 'returned')
         <form method="POST" action="{{ route('admin.loans.return', $loan) }}">
             @csrf @method('PATCH')
@@ -90,6 +105,17 @@ $statusColors = [
                 </div>
             </div>
         </div>
+
+        {{-- QR Code (solo si está pendiente) --}}
+        @if($loan->status === 'pending' && $loan->qr_token)
+        <div class="bg-parchment-50 border border-yellow-300 rounded-xl shadow-sm p-5">
+            <h3 class="text-xs font-semibold text-yellow-600 uppercase tracking-widest mb-3">Código QR de entrega</h3>
+            <p class="text-xs text-sepia-500 mb-3">El usuario presenta este QR. Escanéalo o pulsa "Confirmar entrega".</p>
+            <div class="flex justify-center">
+                {!! QrCode::size(160)->generate(route('admin.loans.show', $loan)) !!}
+            </div>
+        </div>
+        @endif
 
         {{-- Datos del usuario --}}
         <div class="bg-parchment-50 border border-parchment-300 rounded-xl shadow-sm p-5">

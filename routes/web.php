@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LoanController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\User\CatalogoController;
+use App\Http\Controllers\User\LoanController as UserLoanController;
 use App\Http\Controllers\User\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,7 +35,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('categories', CategoryController::class);
         Route::resource('authors',    AuthorController::class);
         Route::resource('loans',      LoanController::class)->only(['index', 'show', 'destroy', 'create', 'store']);
-        Route::patch('loans/{loan}/return', [LoanController::class, 'markReturned'])->name('loans.return');
+        Route::patch('loans/{loan}/return',          [LoanController::class, 'markReturned'])->name('loans.return');
+        Route::patch('loans/{loan}/confirm-pickup',  [LoanController::class, 'confirmPickup'])->name('loans.confirm-pickup');
     });
 
     // User
@@ -43,6 +45,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/catalogo/categoria/{category}', [CatalogoController::class, 'byCategory'])->name('catalogo.categoria');
         Route::get('/catalogo/autor/{author}', [CatalogoController::class, 'byAuthor'])->name('catalogo.autor');
         Route::get('/libros/{book}', [CatalogoController::class, 'show'])->name('books.show');
+        Route::post('/libros/{book}/reservar', [UserLoanController::class, 'store'])->name('books.reserve');
         Route::get('/perfil', [ProfileController::class, 'index'])->name('profile');
     });
 });

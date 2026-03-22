@@ -53,6 +53,16 @@
         </div>
     </div>
 
+    <div>
+        <label class="block text-sm font-medium text-sepia-600 mb-1">Edad mínima requerida</label>
+        <input type="number" name="min_age" min="0" max="120"
+               value="{{ old('min_age', $book->min_age ?? 0) }}"
+               class="w-full border border-parchment-400 rounded-lg px-3 py-2.5 text-sm text-mahogany-900 bg-parchment-50
+                      focus:outline-none focus:ring-2 focus:ring-gold-500">
+        @error('min_age') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+        <p class="mt-1 text-xs text-sepia-400">0 = sin restricción de edad.</p>
+    </div>
+
     <div class="grid grid-cols-2 gap-4">
         <div>
             <label class="block text-sm font-medium text-sepia-600 mb-1">

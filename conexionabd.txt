@@ -46,7 +46,7 @@ USUARIOS DE PRUEBA (seeder)
 --------------------------------------------------------------------
 
     admin@biblioteca.com  |  password  |  rol: admin
-    juan@biblioteca.com   |  password  |  rol: user
+    user@biblioteca.com   |  password  |  rol: user
 
 --------------------------------------------------------------------
 VERIFICAR CONEXIÓN

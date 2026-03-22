@@ -38,12 +38,14 @@ class BookController extends Controller
             'published_at'     => ['nullable', 'date'],
             'stock_total'      => ['required', 'integer', 'min:0'],
             'available_copies' => ['required', 'integer', 'min:0', 'lte:stock_total'],
+            'min_age'          => ['nullable', 'integer', 'min:0', 'max:120'],
             'book_cover'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:min_width=300,min_height=400,max_width=400,max_height=500'],
             'authors'          => ['nullable', 'array'],
             'authors.*'        => ['exists:authors,id'],
         ]);
 
-        $data['año'] = isset($data['published_at']) ? Carbon::parse($data['published_at'])->year : null;
+        $data['año']    = isset($data['published_at']) ? Carbon::parse($data['published_at'])->year : null;
+        $data['min_age'] = $data['min_age'] ?? 0;
 
         if ($request->hasFile('book_cover')) {
             $data['book_cover'] = $request->file('book_cover')->store('books', 'public');
@@ -77,12 +79,14 @@ class BookController extends Controller
             'published_at'     => ['nullable', 'date'],
             'stock_total'      => ['required', 'integer', 'min:0'],
             'available_copies' => ['required', 'integer', 'min:0', 'lte:stock_total'],
+            'min_age'          => ['nullable', 'integer', 'min:0', 'max:120'],
             'book_cover'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:min_width=300,min_height=400,max_width=400,max_height=500'],
             'authors'          => ['nullable', 'array'],
             'authors.*'        => ['exists:authors,id'],
         ]);
 
-        $data['año'] = isset($data['published_at']) ? Carbon::parse($data['published_at'])->year : null;
+        $data['año']     = isset($data['published_at']) ? Carbon::parse($data['published_at'])->year : null;
+        $data['min_age'] = $data['min_age'] ?? 0;
 
         if ($request->hasFile('book_cover')) {
             if ($book->book_cover) {

@@ -248,7 +248,7 @@ VALUES
     ('Admin',  'Sistema', 'admin@biblioteca.com',
      '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
      'admin', NOW(), NOW()),
-    ('Juan',   'Pérez',   'juan@biblioteca.com',
+    ('User',   'Sistema', 'user@biblioteca.com',
      '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
      'user',  NOW(), NOW()),
     ('María',  'García',  'maria@biblioteca.com',

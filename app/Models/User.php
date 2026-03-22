@@ -21,6 +21,7 @@ class User extends Authenticatable
         'password',
         'role',
         'is_active',
+        'birth_date',
     ];
 
     protected $hidden = [
@@ -31,8 +32,9 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'password'  => 'hashed',
-            'is_active' => 'boolean',
+            'password'   => 'hashed',
+            'is_active'  => 'boolean',
+            'birth_date' => 'date',
         ];
     }
 
@@ -49,6 +51,11 @@ class User extends Authenticatable
     public function isActive(): bool
     {
         return (bool) $this->is_active;
+    }
+
+    public function age(): ?int
+    {
+        return $this->birth_date?->age;
     }
 
     public function loans(): HasMany

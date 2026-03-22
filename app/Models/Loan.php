@@ -14,6 +14,7 @@ class Loan extends Model
         'loan_date',
         'return_date',
         'status',
+        'qr_token',
     ];
 
     protected function casts(): array

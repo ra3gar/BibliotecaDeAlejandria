@@ -5,8 +5,9 @@
 @section('content')
 
 @php
-$statusLabels = ['active' => 'Activo', 'returned' => 'Devuelto', 'overdue' => 'Vencido'];
+$statusLabels = ['pending' => 'Pendiente', 'active' => 'Activo', 'returned' => 'Devuelto', 'overdue' => 'Vencido'];
 $statusColors = [
+    'pending'  => 'bg-yellow-100 text-yellow-800',
     'active'   => 'bg-green-100 text-green-800',
     'returned' => 'bg-blue-100 text-blue-800',
     'overdue'  => 'bg-red-100 text-red-800',
@@ -95,6 +96,7 @@ $statusColors = [
                 class="w-full rounded-lg border border-parchment-400 bg-parchment-50 text-sm text-mahogany-900 px-3 py-2
                        focus:outline-none focus:ring-2 focus:ring-gold-500">
             <option value="">Todos</option>
+            <option value="pending"  {{ request('status') === 'pending'  ? 'selected' : '' }}>Pendiente</option>
             <option value="active"   {{ request('status') === 'active'   ? 'selected' : '' }}>Activo</option>
             <option value="returned" {{ request('status') === 'returned' ? 'selected' : '' }}>Devuelto</option>
             <option value="overdue"  {{ request('status') === 'overdue'  ? 'selected' : '' }}>Vencido</option>
@@ -175,6 +177,16 @@ $statusColors = [
                            class="px-3 py-1 text-xs font-medium text-sepia-700 bg-parchment-200 hover:bg-parchment-300 rounded-lg transition-colors duration-150">
                             Ver
                         </a>
+
+                        @if($loan->status === 'pending')
+                        <form method="POST" action="{{ route('admin.loans.confirm-pickup', $loan) }}">
+                            @csrf @method('PATCH')
+                            <button type="submit"
+                                    class="px-3 py-1 text-xs font-medium text-yellow-700 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors duration-150">
+                                Confirmar entrega
+                            </button>
+                        </form>
+                        @endif
 
                         @if($loan->status !== 'returned')
                         <form method="POST" action="{{ route('admin.loans.return', $loan) }}">

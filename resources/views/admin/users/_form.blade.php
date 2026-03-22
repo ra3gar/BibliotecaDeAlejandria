@@ -33,6 +33,16 @@
         @error('email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
     </div>
 
+    <div>
+        <label class="block text-sm font-medium text-sepia-600 mb-1">Fecha de nacimiento</label>
+        <input type="date" name="birth_date"
+               value="{{ old('birth_date', isset($user) && $user->birth_date ? $user->birth_date->format('Y-m-d') : '') }}"
+               class="w-full border border-parchment-400 rounded-lg px-3 py-2.5 text-sm text-mahogany-900 bg-parchment-50
+                      focus:outline-none focus:ring-2 focus:ring-gold-500">
+        @error('birth_date') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+        <p class="mt-1 text-xs text-sepia-400">Requerida para validar restricciones de edad en préstamos.</p>
+    </div>
+
     <div class="grid grid-cols-2 gap-4">
         <div>
             <label class="block text-sm font-medium text-sepia-600 mb-1">Rol</label>

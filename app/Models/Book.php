@@ -20,6 +20,7 @@ class Book extends Model
         'año',
         'stock_total',
         'available_copies',
+        'min_age',
     ];
 
     protected function casts(): array
@@ -29,6 +30,7 @@ class Book extends Model
             'año'              => 'integer',
             'stock_total'      => 'integer',
             'available_copies' => 'integer',
+            'min_age'          => 'integer',
         ];
     }
 

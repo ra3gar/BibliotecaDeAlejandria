@@ -74,6 +74,7 @@
                             <td class="px-4 py-3">
                                 @php
                                     $statusMap = [
+                                        'pending'  => ['text' => 'Pendiente', 'class' => 'bg-yellow-100 text-yellow-700'],
                                         'active'   => ['text' => 'Activo',    'class' => 'bg-green-100 text-green-700'],
                                         'returned' => ['text' => 'Devuelto',  'class' => 'bg-parchment-200 text-sepia-600'],
                                         'overdue'  => ['text' => 'Vencido',   'class' => 'bg-red-100 text-red-700'],
@@ -83,6 +84,17 @@
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $s['class'] }}">
                                     {{ $s['text'] }}
                                 </span>
+                                @if($loan->status === 'pending' && $loan->qr_token)
+                                <button type="button"
+                                        onclick="document.getElementById('qr-{{ $loan->id }}').classList.toggle('hidden')"
+                                        class="mt-1 text-xs text-gold-600 hover:text-gold-700 underline block">
+                                    Ver QR
+                                </button>
+                                <div id="qr-{{ $loan->id }}" class="hidden mt-2 p-2 bg-white border border-parchment-300 rounded-lg">
+                                    {!! QrCode::size(120)->generate(route('admin.loans.show', $loan)) !!}
+                                    <p class="text-xs text-sepia-400 text-center mt-1">Presenta en la biblioteca</p>
+                                </div>
+                                @endif
                             </td>
                         </tr>
                         @endforeach

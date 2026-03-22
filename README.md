@@ -1,6 +1,6 @@
 # Biblioteca de Alejandría
 
-Sistema de gestión de biblioteca física desarrollado como proyecto universitario para la materia **Programación Aplicada 1** — Universidad UPED 2026.
+Sistema de gestión de biblioteca física con préstamos híbridos (presencial + web + QR), desarrollado como proyecto universitario para la materia **Programación Aplicada 1** — Universidad UPED 2026.
 
 ---
 
@@ -11,13 +11,14 @@ Sistema de gestión de biblioteca física desarrollado como proyecto universitar
 | **PHP** | ^8.2 | Lenguaje de programación del backend |
 | **Laravel** | 12 | Framework principal del proyecto (MVC, ORM, rutas, middleware) |
 | **Blade** | — | Motor de plantillas de Laravel para las vistas |
-| **MySQL** | — | Base de datos activa para desarrollo local (configurable en `.env`) |
+| **MySQL** | 8.0 | Base de datos para desarrollo local (configurable en `.env`) |
 | **SQLite** | — | Base de datos en memoria para pruebas automatizadas |
 | **Tailwind CSS** | v4 | Framework de estilos utilitarios para el frontend |
-| **Alpine.js** | 3.x | Reactividad en el frontend (dropdowns, carrusel, formularios) |
-| **Vite** | 7 | Herramienta de bundling y compilación de activos frontend |
+| **Alpine.js** | 3.x | Reactividad en el frontend (tabs, dropdowns, formularios) |
+| **Vite** | 7 | Bundling y compilación de assets frontend (CSS/JS) |
 | **PHPUnit** | ^11.5 | Framework de pruebas automatizadas |
-| **Laravel Pint** | — | Herramienta de formato y estilo de código PHP |
+| **Laravel Pint** | — | Formateador de código PHP según estándar Laravel |
+| **simple-qrcode** | ^4.2 | Generación de códigos QR en SVG inline (`simplesoftwareio/simple-qrcode`) |
 
 ---
 
@@ -26,7 +27,7 @@ Sistema de gestión de biblioteca física desarrollado como proyecto universitar
 | Herramienta | Versión mínima | Notas |
 |---|---|---|
 | **PHP** | 8.2 | Con extensiones: pdo_mysql, mbstring, openssl, tokenizer, xml |
-| **Composer** | 2.x | Gestor de dependencias de PHP |
+| **Composer** | 2.x | Gestor de dependencias PHP |
 | **Node.js** | 18.x | Para compilar assets con Vite y Tailwind |
 | **npm** | 9.x | Incluido con Node.js |
 | **MySQL** | 8.0 | Servidor de base de datos local |
@@ -43,7 +44,7 @@ git clone <url-del-repositorio>
 cd BibliotecaDeAlejandria
 ```
 
-### Paso 2 — Configurar la base de datos ⚠️ Hacer ANTES de instalar
+### Paso 2 — Crear la base de datos ⚠️ Hacer ANTES de instalar
 
 Crea la base de datos en MySQL:
 
@@ -53,13 +54,13 @@ CREATE DATABASE biblioteca_alejandria
     COLLATE utf8mb4_unicode_ci;
 ```
 
-Luego copia el archivo de entorno y configura tus credenciales:
+Luego copia el archivo de entorno:
 
 ```bash
 cp .env.example .env
 ```
 
-Edita `.env` con tu editor y ajusta:
+Edita `.env` con tus credenciales:
 
 ```env
 DB_CONNECTION=mysql
@@ -77,9 +78,9 @@ composer setup
 ```
 
 Este comando hace todo de una vez:
-- Instala dependencias PHP (`composer install`)
+- Instala dependencias PHP (`composer install`) incluyendo `simplesoftwareio/simple-qrcode`
 - Genera la clave de aplicación (`php artisan key:generate`)
-- Ejecuta todas las migraciones (`php artisan migrate`)
+- Ejecuta las 17 migraciones (`php artisan migrate`)
 - Instala dependencias Node.js (`npm install`)
 - Compila los assets frontend (`npm run build`)
 
@@ -89,7 +90,7 @@ Este comando hace todo de una vez:
 php artisan storage:link
 ```
 
-> **Obligatorio** para que se muestren las portadas de libros y fotos de autores.
+> **Obligatorio** para que se muestren las portadas de libros y fotos de autores en el navegador.
 
 ### Paso 5 — Sembrar datos de prueba (opcional)
 
@@ -105,7 +106,7 @@ Crea los usuarios de prueba iniciales (ver tabla más abajo).
 composer dev
 ```
 
-Acceder en el navegador a: `http://localhost:8000`
+Acceder en el navegador: `http://localhost:8000`
 
 ---
 
@@ -115,16 +116,16 @@ Acceder en el navegador a: `http://localhost:8000`
 Terminal 1 (única terminal necesaria):
 
   composer dev
-    ├── php artisan serve     → servidor PHP en localhost:8000
-    ├── npm run dev           → Vite con hot reload en localhost:5173
-    └── php artisan queue:listen → procesador de colas
+    ├── php artisan serve        → servidor PHP en localhost:8000
+    ├── npm run dev              → Vite con hot reload en localhost:5173
+    └── php artisan queue:listen → procesador de colas en background
 
 Para cerrar: Ctrl+C — detiene los 3 procesos a la vez.
 ```
 
-> ⚠️ **No ejecutes** `php artisan serve` en una terminal separada mientras `composer dev` está activo — ya lo incluye internamente y causará conflicto de puertos.
+> ⚠️ **No ejecutes** `php artisan serve` en una terminal separada mientras `composer dev` está activo — ya lo incluye y causará conflicto de puertos.
 
-> ⚠️ Si los estilos no cargan, verifica que no exista el archivo `public/hot`:
+> ⚠️ Si los estilos no cargan, verifica que no exista el archivo residual de Vite:
 > ```bash
 > rm -f public/hot
 > ```
@@ -137,39 +138,45 @@ Para cerrar: Ctrl+C — detiene los 3 procesos a la vez.
 # Arrancar el entorno completo (servidor + queue + vite)
 composer dev
 
-# Solo compilar assets (para producción o si no usas hot reload)
+# Solo compilar assets (para producción o sin hot reload)
 npm run build
 
-# Ejecutar pruebas automatizadas
+# Ejecutar todas las pruebas automatizadas
 composer test
+
+# Ejecutar un archivo de prueba específico
+php artisan test tests/Feature/ExampleTest.php
+
+# Ejecutar una prueba por nombre
+php artisan test --filter=nombre_del_test
 
 # Migrar y sembrar datos de prueba
 php artisan migrate --seed
 
-# Reiniciar base de datos desde cero
+# Reiniciar base de datos desde cero (¡elimina todos los datos!)
 php artisan migrate:fresh --seed
 
-# Limpiar caché de configuración y vistas
+# Formatear código según estándar Laravel (solo archivos modificados)
+vendor/bin/pint --dirty
+
+# Limpiar cachés de Laravel
 php artisan config:clear && php artisan cache:clear && php artisan view:clear
 
 # Verificar enlace de almacenamiento público
 php artisan storage:link
 
-# Abrir consola interactiva de MySQL (verifica conexión)
+# Abrir consola interactiva de MySQL (verifica la conexión)
 php artisan db
-
-# Formatear código según estándar Laravel
-vendor/bin/pint
 ```
 
 ---
 
 ## Usuarios de prueba
 
-| Email | Contraseña | Rol | Acceso |
+| Email | Contraseña | Rol | Panel de acceso |
 |---|---|---|---|
-| `admin@biblioteca.com` | `password` | admin | Panel de administración (`/admin/dashboard`) |
-| `juan@biblioteca.com` | `password` | user | Catálogo público (`/catalogo`) |
+| `admin@biblioteca.com` | `password` | admin | `/admin/dashboard` |
+| `user@biblioteca.com` | `password` | user | `/catalogo` |
 
 ---
 
@@ -183,23 +190,24 @@ BibliotecaDeAlejandria/
 │   │   ├── Controllers/
 │   │   │   ├── Admin/
 │   │   │   │   ├── DashboardController.php   # KPIs, préstamos recientes, auditoría
-│   │   │   │   ├── BookController.php        # CRUD libros + stock físico
+│   │   │   │   ├── BookController.php        # CRUD libros + stock físico + min_age
 │   │   │   │   ├── CategoryController.php    # CRUD categorías
 │   │   │   │   ├── AuthorController.php      # CRUD autores + gestión de fotos
-│   │   │   │   ├── LoanController.php        # Registro, devolución y control de stock
+│   │   │   │   ├── LoanController.php        # Registro, QR, confirmPickup, devolución
 │   │   │   │   └── UserController.php        # CRUD + activar/desactivar + cambiar contraseña
 │   │   │   ├── User/
 │   │   │   │   ├── CatalogoController.php    # Catálogo público, filtros por categoría y autor
-│   │   │   │   └── ProfileController.php     # Perfil del usuario
+│   │   │   │   ├── LoanController.php        # Auto-reserva de libros por el usuario
+│   │   │   │   └── ProfileController.php     # Perfil del usuario con historial de préstamos
 │   │   │   └── AuthController.php            # Login, logout + auditoría de fallos
 │   │   └── Middleware/
-│   │       └── CheckRole.php                 # Verifica rol y estado activo del usuario
+│   │       └── CheckRole.php                 # Verifica rol y estado activo (bloquea inactivos)
 │   ├── Models/
-│   │   ├── User.php          # is_active, isAdmin(), isActive(), full_name
-│   │   ├── Book.php          # stock_total, available_copies, año (derivado de published_at)
+│   │   ├── User.php          # is_active, birth_date, isAdmin(), isActive(), age(), full_name
+│   │   ├── Book.php          # stock_total, available_copies, min_age, isAvailable()
 │   │   ├── Category.php
 │   │   ├── Author.php        # photo_path, photo_url accessor, bio
-│   │   ├── Loan.php          # Relaciones user/book, estados de préstamo
+│   │   ├── Loan.php          # status (pending/active/returned/overdue), qr_token, scopes
 │   │   └── AuditLog.php      # Registro de auditoría
 │   ├── Observers/
 │   │   └── BookObserver.php  # Graba en audit_logs al crear/editar/eliminar libros
@@ -207,7 +215,7 @@ BibliotecaDeAlejandria/
 │       └── AppServiceProvider.php  # Registra BookObserver
 │
 ├── database/
-│   └── migrations/           # 13 migraciones en orden cronológico
+│   └── migrations/           # 17 migraciones en orden cronológico
 │
 ├── public/
 │   ├── images/
@@ -228,15 +236,15 @@ BibliotecaDeAlejandria/
 │       ├── admin/
 │       │   ├── dashboard.blade.php
 │       │   ├── books/            # index, create, edit, _form
-│       │   ├── loans/            # index, show, create
+│       │   ├── loans/            # index, show, create (con QR en show)
 │       │   ├── users/            # index, create, edit
 │       │   ├── categories/       # index, create, edit
 │       │   └── authors/          # index, create, edit
 │       └── user/
 │           ├── catalogo.blade.php
 │           ├── catalogo-filtrado.blade.php
-│           ├── book-detail.blade.php
-│           └── profile.blade.php
+│           ├── book-detail.blade.php   # Con botón "Reservar este libro"
+│           └── profile.blade.php       # Con QR colapsable para préstamos pendientes
 │
 ├── storage/
 │   └── app/public/
@@ -244,8 +252,9 @@ BibliotecaDeAlejandria/
 │       └── authors/          # Fotos de autores subidas
 │
 ├── GUIAS/
-│   ├── ConexionaBD.txt       # Guía de configuración de base de datos
-│   └── COMANDOS PARA MYSQL PARA LA CREACION DE LA BD.sql  # Esquema SQL de referencia
+│   ├── ConexionaBD.txt                              # Guía de configuración de BD
+│   ├── COMANDOS PARA MYSQL PARA LA CREACION DE LA BD.sql  # Esquema SQL de referencia
+│   └── Usuarios predeterminados del sistema.sql    # Inserción manual de usuarios de prueba
 │
 ├── routes/web.php
 └── composer.json
@@ -268,35 +277,55 @@ BibliotecaDeAlejandria/
 | `book_cover` | Portada (JPG/PNG/WebP, máx. 2 MB, 300×400 — 400×500 px) |
 | `stock_total` | Total de ejemplares físicos en la biblioteca |
 | `available_copies` | Copias actualmente disponibles para préstamo |
+| `min_age` | Edad mínima requerida para solicitar el libro (0 = sin restricción) |
 
 ### Gestión de stock
 
 - Solo se puede registrar un préstamo si `available_copies > 0`
-- Al registrar un préstamo, `available_copies` se decrementa en 1
-- Al marcar un préstamo como devuelto, `available_copies` se incrementa en 1
+- El stock (`available_copies`) se decrementa al crear la **reserva** (`pending`)
+- El stock se incrementa al **marcar como devuelto** (`returned`)
 - `available_copies` no puede superar `stock_total`
 - Protección contra doble devolución del mismo préstamo
+
+### Sistema de préstamos híbrido con QR
+
+El flujo de préstamo combina una reserva web con entrega presencial verificada por código QR:
+
+1. **Reserva online** — el usuario hace clic en "Reservar este libro" desde el catálogo. Se crea el préstamo en estado `pending` y se genera un `qr_token` UUID único. El stock se decrementa en este momento.
+2. **QR en el perfil** — el usuario ve sus reservas pendientes en `/perfil`. Puede expandir cada una para ver su código QR.
+3. **Entrega física** — el usuario se presenta en la biblioteca con el QR en pantalla. El admin escanea el QR o busca el préstamo manualmente y hace clic en "Confirmar entrega". El préstamo pasa a estado `active`.
+4. **Devolución** — cuando el usuario regresa el libro físico, el admin hace clic en "Marcar como devuelto". El préstamo pasa a `returned` y el stock se incrementa.
+
+### Restricción de edad en préstamos
+
+- Cada libro puede tener un campo `min_age` (entero, default 0)
+- Si `min_age > 0`, el sistema verifica que el usuario tenga al menos esa edad calculada desde su `birth_date`
+- Si el usuario no tiene `birth_date` registrado, la validación se omite (no bloquea el préstamo)
+- La verificación aplica tanto en reservas del usuario como en préstamos creados manualmente por el admin
 
 ### Gestión de usuarios
 
 - **Activar / Desactivar** cuentas desde el panel admin
-- Los usuarios inactivos son desconectados automáticamente al navegar
+- Los usuarios inactivos son desconectados automáticamente al navegar (middleware `CheckRole`)
 - **Cambiar contraseña** desde la pantalla de edición del usuario
+- Campo `birth_date` para registrar la fecha de nacimiento (usado en restricciones de edad)
 
 ### Dashboard del administrador
 
 - **KPIs**: total libros (con alerta de agotados), préstamos activos (con alerta de vencidos), usuarios (con alerta de inactivos)
-- **Préstamos recientes**: últimos 5 registros con estado
+- **Préstamos recientes**: últimos 5 registros con estado visual por color
 - **Auditoría reciente**: últimos 8 registros de cualquier tipo
 
-### Auditoría
+### Auditoría del sistema
 
-| Evento | Cuándo se registra |
-|---|---|
-| `created` | Al crear un libro (`BookObserver`) |
-| `updated` | Al editar un libro (`BookObserver`) |
-| `deleted` | Al eliminar un libro (`BookObserver`) |
-| `login_failed` | Intento de login fallido — registra email e IP (`AuthController`) |
+| Evento | Disparador | Descripción |
+|---|---|---|
+| `created` | `BookObserver` | Al crear un libro |
+| `updated` | `BookObserver` | Al editar un libro |
+| `deleted` | `BookObserver` | Al eliminar un libro |
+| `updated` | `LoanController` | Al confirmar entrega de un préstamo (`pending → active`) |
+| `updated` | `LoanController` | Al registrar devolución de un préstamo (`→ returned`) |
+| `login_failed` | `AuthController` | Intento de login fallido — registra email e IP |
 
 ---
 
@@ -322,7 +351,7 @@ BibliotecaDeAlejandria/
 | Peso máximo | 2 MB |
 | Carpeta de almacenamiento | `storage/app/public/authors/` |
 
-- Al actualizar la foto de un autor, la foto anterior se elimina del disco automáticamente
+- Al actualizar la foto, la anterior se elimina del disco automáticamente
 - Al eliminar un autor, su foto se elimina del disco automáticamente
 
 ### Imágenes estáticas del sitio

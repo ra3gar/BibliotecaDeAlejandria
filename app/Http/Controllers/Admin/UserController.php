@@ -31,6 +31,7 @@ class UserController extends Controller
             'password'   => ['required', 'confirmed', Password::defaults()],
             'role'       => ['required', 'in:admin,user'],
             'is_active'  => ['boolean'],
+            'birth_date' => ['nullable', 'date', 'before:today'],
         ]);
 
         $data['is_active'] = $request->boolean('is_active', true);
@@ -54,6 +55,7 @@ class UserController extends Controller
             'email'      => ['required', 'email', 'unique:book_store_users,email,' . $user->id],
             'role'       => ['required', 'in:admin,user'],
             'is_active'  => ['boolean'],
+            'birth_date' => ['nullable', 'date', 'before:today'],
         ]);
 
         $data['is_active'] = $request->boolean('is_active', true);

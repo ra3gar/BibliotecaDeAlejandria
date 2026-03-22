@@ -1,139 +1,253 @@
-# CLAUDE.md
+# CLAUDE.md — Guía Maestra del Proyecto
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+> Archivo de instrucciones para Claude Code (claude.ai/code).
+> Define el contexto, la arquitectura y las reglas de negocio del sistema.
 
-## Project
+---
 
-Universidad UPED 2026 — Programación Aplicada 1. A library management system (BibliotecaDeAlejandria) built with Laravel 12.
+## Proyecto
 
-## Commands
+**Biblioteca de Alejandría** — Sistema de gestión de biblioteca física con préstamos híbridos (web + presencial + QR).
+Desarrollado para la materia **Programación Aplicada 1** — Universidad UPED 2026.
+
+---
+
+## Comandos esenciales
 
 ```bash
-# First-time setup (install deps, generate key, migrate, build assets)
+# Instalación completa desde cero (deps, clave, migraciones, assets)
 composer setup
 
-# Start full dev environment (server + queue + logs + vite)
+# Arrancar el entorno completo (servidor + queue + vite con hot reload)
 composer dev
 
-# Run tests
+# Ejecutar todas las pruebas automatizadas
 composer test
 
-# Run a single test file
+# Ejecutar un archivo de prueba específico
 php artisan test tests/Feature/ExampleTest.php
 
-# Run a single test by name
-php artisan test --filter=test_name
+# Ejecutar una prueba por nombre
+php artisan test --filter=nombre_del_test
 
-# Lint (only dirty files)
+# Formatear código (solo archivos modificados)
 vendor/bin/pint --dirty
 
-# Migrate and seed
+# Migrar y sembrar datos de prueba
 php artisan migrate --seed
 
-# Fresh migration
+# Reiniciar la base de datos desde cero (¡elimina todo!)
 php artisan migrate:fresh --seed
 ```
 
-## Stack
+---
 
-- **PHP** ^8.2, **Laravel** 12, **MySQL** (conexión local activa)
-- **Testing**: PHPUnit ^11.5.3 via `php artisan test` (in-memory SQLite, BCRYPT_ROUNDS=4)
-- **Frontend**: Vite 7 + Tailwind CSS v4
-- **Code style**: Laravel Pint
+## Stack tecnológico
 
-## MySQL Setup
+| Capa | Tecnología | Versión |
+|---|---|---|
+| Backend | PHP + Laravel | ^8.2 / 12 |
+| Base de datos | MySQL (desarrollo) | 8.0 |
+| Base de datos | SQLite en memoria (pruebas) | — |
+| Frontend | Vite + Tailwind CSS | 7 / v4 |
+| QR | simplesoftwareio/simple-qrcode | ^4.2 |
+| Testing | PHPUnit via `php artisan test` | ^11.5.3 |
+| Linter | Laravel Pint | — |
 
-In `.env`, configure:
-```
+> Las pruebas usan SQLite en memoria con `BCRYPT_ROUNDS=4`. No requieren cambios en `.env`.
+
+---
+
+## Configuración MySQL
+
+En el archivo `.env` de la raíz del proyecto:
+
+```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=biblioteca_alejandria
 DB_USERNAME=root
-DB_PASSWORD=your_password
+DB_PASSWORD=tu_contraseña
 ```
 
-## Architecture
+---
 
-Laravel 12 standard MVC. Controllers are split into `Admin/` and `User/` namespaces under `app/Http/Controllers/`.
+## Arquitectura del sistema
 
-**Auth & Users**
-- Table: `book_store_users` with standard auto-increment `id`
-- Model: `App\Models\User` (standard User with `$table = 'book_store_users'`)
-- Fields: `first_name`, `last_name`, `email`, `password`, `role`, `is_active`
-- Roles: `admin` | `user` (enum)
-- Helpers: `$user->isAdmin()`, `$user->isActive()`, accessor `$user->full_name`
-- `is_active` (boolean, default true) — cuentas inactivas son desconectadas automáticamente por `CheckRole`
-- Role middleware alias `role` → `App\Http\Middleware\CheckRole`, registered in `bootstrap/app.php`
-- `CheckRole` bloquea usuarios inactivos (logout + redirect a login con mensaje), y redirige roles incorrectos a su home
+Laravel 12 MVC estándar. Los controladores están divididos en dos namespaces bajo `app/Http/Controllers/`:
 
-**Static Assets**
-- `public/images/logo.png` — logo del sistema; usado en login, sidebar admin y navbar usuario via `asset('images/logo.png')`
-- `public/images/Fondo.png` — fondo de la pantalla de login
-- `public/images/Fondo2.jpg` — fondo del panel admin y catálogo de usuario
-- Estas imágenes NO usan `Storage::disk` — se sirven directamente desde `public/`
+- `Admin/` — panel de administración (CRUD completo + dashboard + auditoría)
+- `User/` — portal del usuario (catálogo, reservas, perfil)
 
-**Domain Models**
-- `User` — `book_store_users`, standard PK `id`
-- `Category` — `categories`, standard PK `id`
-- `Author` — `authors`, standard PK `id`; fotos en `Storage::disk('public')` carpeta `authors/`
-  - Campos: `first_name`, `last_name`, `bio` (text), `photo_path` (string, nullable)
-  - Accessor: `$author->photo_url` → URL pública de la foto, o `null` si no tiene
-  - Al actualizar foto: se elimina la anterior del disco antes de guardar la nueva
-  - Al eliminar autor: se elimina su foto del disco automáticamente
-- `Book` — `books`, standard PK `id`; portadas en `Storage::disk('public')` carpeta `books/`
-  - Campos: `title`, `isbn`, `summary`, `publisher`, `category_id`, `book_cover`, `published_at`, `año`, `stock_total`, `available_copies`
-  - `año` (integer, nullable) — se deriva automáticamente de `published_at` en `BookController` al crear/editar; no se acepta desde el formulario
-  - Stock físico: `stock_total` (int, default 0), `available_copies` (int, default 0)
-  - Helper: `$book->isAvailable()` → true si `available_copies > 0`
-  - Observer: `BookObserver` registrado en `AppServiceProvider` — graba en `audit_logs` cada created/updated/deleted
-  - Campos eliminados: `codigo_interno` y `path_pdf` (removidos en migración `2026_03_15_000001`)
-- `Loan` — `loans`, standard PK `id`; `status` enum: `active` | `returned` | `overdue`
-  - Crear préstamo: verifica `available_copies > 0`, decrementa en 1
-  - Marcar devuelto: incrementa `available_copies` en 1; ignora si ya estaba devuelto
-- `AuditLog` — `audit_logs`, sin `updated_at`; campos: `user_id`, `action`, `model_type`, `model_id`, `description`
-- `book_author` — pivot table linking books ↔ authors (via `$book->authors()->sync()`)
+---
 
-**Fotos de autores — reglas de negocio**
-- Formatos aceptados: `jpeg`, `jpg`, `png`; máximo 2 MB (validación en `AuthorController`)
-- Ruta de almacenamiento: `storage/app/public/authors/`; accesible vía `Storage::disk('public')`
-- `AuthorController@destroy` limpia el archivo del disco al eliminar el autor
-- Vista pública `books.show` muestra foto circular + biografía de cada autor del libro; si no hay foto, muestra un avatar SVG de placeholder
+## Autenticación y usuarios
 
-**Stock físico — reglas de negocio**
-- `available_copies` no puede superar `stock_total` (regla `lte:stock_total` en BookController)
-- Préstamo solo se crea si `available_copies > 0`; error de validación si no hay stock
-- `markReturned` protegido contra doble ejecución
+- **Tabla**: `book_store_users` (nombre personalizado para evitar colisión con otros proyectos Laravel)
+- **Modelo**: `App\Models\User` con `$table = 'book_store_users'`
+- **Campos**: `first_name`, `last_name`, `email`, `password`, `role`, `is_active`, `birth_date`
+- **Roles**: `admin` | `user` (ENUM)
+- **Helpers del modelo**:
+  - `$user->isAdmin()` → true si `role = 'admin'`
+  - `$user->isActive()` → true si `is_active = 1`
+  - `$user->age()` → edad en años (int) o `null` si `birth_date` es NULL
+  - `$user->full_name` → accesor que devuelve `"Nombre Apellido"`
+- **`is_active`** (boolean, default true) — las cuentas inactivas son desconectadas automáticamente por `CheckRole`
+- **`birth_date`** (date, nullable) — usada para validar restricciones de edad en préstamos
+- **Middleware de rol**: alias `role` → `App\Http\Middleware\CheckRole`, registrado en `bootstrap/app.php`
+- `CheckRole` bloquea usuarios inactivos (hace logout + redirige a login con mensaje) y redirige roles incorrectos a su home
 
-**Auditoría**
-- Tabla `audit_logs`: registra automáticamente creación, edición y eliminación de libros (vía `BookObserver`) e intentos de login fallidos (vía `AuthController`)
-- El `BookObserver` captura el usuario autenticado (`Auth::id()`) en cada evento
-- `AuthController@login` graba `action='login_failed'`, `model_type='Auth'`, con descripción que incluye el email y la IP del intento
-- Los últimos 8 registros (de cualquier tipo) se muestran en el dashboard del admin
+---
+
+## Recursos estáticos
+
+Ubicados en `public/images/` — se sirven **directamente** (no usan `Storage::disk`):
+
+| Archivo | Uso en el sistema |
+|---|---|
+| `logo.png` | Logo en login, sidebar admin y navbar usuario |
+| `Fondo.png` | Imagen de fondo de la pantalla de login |
+| `Fondo2.jpg` | Fondo del panel admin y catálogo de usuario |
+
+Referencia en Blade: `{{ asset('images/archivo.ext') }}`
+
+---
+
+## Modelos de dominio
+
+### `User` — Usuarios (`book_store_users`)
+PK estándar `id`. Ver sección de autenticación para campos y helpers.
+
+### `Category` — Categorías (`categories`)
+PK estándar `id`. Un libro pertenece a una categoría (nullable con `SET NULL ON DELETE`).
+
+### `Author` — Autores (`authors`)
+PK estándar `id`. Fotos en `Storage::disk('public')` carpeta `authors/`.
+- Campos: `first_name`, `last_name`, `bio` (text), `photo_path` (string, nullable)
+- Accesor: `$author->photo_url` → URL pública si tiene foto, `null` si no
+- Al **actualizar** foto: se elimina la anterior del disco antes de guardar la nueva
+- Al **eliminar** autor: su foto se elimina del disco automáticamente
+- Formatos aceptados: `jpeg`, `jpg`, `png` | Máximo: 2 MB
+
+### `Book` — Libros (`books`)
+PK estándar `id`. Portadas en `Storage::disk('public')` carpeta `books/`.
+- Campos: `title`, `isbn`, `summary`, `publisher`, `category_id`, `book_cover`, `published_at`, `año`, `stock_total`, `available_copies`, `min_age`
+- `año` (int, nullable) — se deriva automáticamente de `published_at` en `BookController`; **el formulario no lo envía**
+- `stock_total` — total de ejemplares físicos en la biblioteca
+- `available_copies` — ejemplares disponibles para préstamo ahora mismo
+- `min_age` (int, default 0) — edad mínima para reservar el libro; `0` = sin restricción
+- Helper: `$book->isAvailable()` → true si `available_copies > 0`
+- Observer: `BookObserver` registrado en `AppServiceProvider` — graba en `audit_logs` cada `created`, `updated`, `deleted`
+- Campos **eliminados** en migración `2026_03_15_000001`: `codigo_interno` y `path_pdf`
+
+### `Loan` — Préstamos (`loans`)
+PK estándar `id`. Implementa el flujo híbrido presencial + web con código QR.
+- `status` ENUM: `pending` | `active` | `returned` | `overdue`
+- `qr_token` (string, unique, nullable) — UUID generado con `Str::uuid()` al crear la reserva
+- `loan_date` — fecha de la reserva online
+- `return_date` — se rellena solo al marcar el préstamo como devuelto
+
+**Flujo completo**:
+```
+[1] Usuario reserva online  →  status = 'pending'  +  stock--  +  qr_token generado
+[2] Usuario muestra QR en la biblioteca
+[3] Admin confirma entrega  →  status = 'active'   +  audit_log
+[4] Admin marca devuelto    →  status = 'returned' +  stock++   +  audit_log
+[E] Incumplimiento          →  status = 'overdue'  (manual, sin movimiento de stock)
+```
+
+**Reglas al crear un préstamo**:
+- Verifica que `available_copies > 0` (error si no hay stock)
+- Si `min_age > 0` y el usuario tiene `birth_date`, verifica la edad
+- Si el usuario no tiene `birth_date`, la validación de edad se **omite** (no bloquea)
+- Guard anti-duplicados: no se puede tener dos reservas `pending` o `active` del mismo libro
+
+- `confirmPickup` — cambia `pending → active`; graba en `audit_logs`
+- `markReturned` — incrementa `available_copies`; protegido contra doble ejecución; graba en `audit_logs`
+- El usuario puede auto-reservar desde la vista de detalle del libro (`POST /libros/{book}/reservar`)
+
+### `AuditLog` — Auditoría (`audit_logs`)
+Sin `updated_at` por diseño: los logs son **inmutables**.
+- Campos: `user_id`, `action`, `model_type`, `model_id`, `description`
 - Acciones posibles: `created`, `updated`, `deleted`, `login_failed`
 
-**Routes**
-- `GET /` → redirect to login
-- `GET|POST /login` → `AuthController` (guest middleware)
-- `POST /logout`
-- Admin group (`auth` + `role:admin` + prefix `/admin` + name prefix `admin.`):
-  - `GET /admin/dashboard` → `Admin\DashboardController`
-  - Resources: `admin.users`, `admin.books`, `admin.categories`, `admin.authors`
-  - `admin.loans` → index, show, destroy, create, store
-  - `PATCH /admin/loans/{loan}/return` → `Admin\LoanController@markReturned` (named `admin.loans.return`)
-  - `PATCH /admin/users/{user}/toggle-active` → `Admin\UserController@toggleActive` (named `admin.users.toggle-active`)
-  - `PATCH /admin/users/{user}/change-password` → `Admin\UserController@changePassword` (named `admin.users.change-password`)
-- User group (`auth` + `role:user`):
-  - `GET /catalogo` → `User\CatalogoController@index`
-  - `GET /catalogo/categoria/{category}` → `User\CatalogoController@byCategory` (named `catalogo.categoria`)
-  - `GET /catalogo/autor/{author}` → `User\CatalogoController@byAuthor` (named `catalogo.autor`)
-  - `GET /libros/{book}` → `User\CatalogoController@show` (named `books.show`)
-  - `GET /perfil` → `User\ProfileController@index`
+### `book_author` — Pivote libros ↔ autores
+Tabla intermedia sin `id` propio ni timestamps. Se gestiona con `$book->authors()->sync([...])`.
 
-## Testing
+---
 
-Tests live in `tests/Feature/` and `tests/Unit/`. The test environment uses an in-memory SQLite DB — no `.env` changes needed to run tests.
+## Reglas de negocio — Stock físico
 
-Seed test users via `DatabaseSeeder`:
-- `admin@biblioteca.com` / `password` → role: admin, is_active: true
-- `juan@biblioteca.com` / `password` → role: user, is_active: true
+- `available_copies` **no puede superar** `stock_total` (regla `lte:stock_total` en `BookController`)
+- El préstamo solo se crea si `available_copies > 0`
+- El stock **decrementa** al crear la reserva (`pending`), **no** al confirmar la entrega
+- `markReturned` protegido contra doble ejecución (verifica estado antes de modificar)
+
+---
+
+## Generación de QR
+
+- Package: `simplesoftwareio/simple-qrcode` v4 — alias de facade: `QrCode`
+- Genera SVG inline con: `{!! QrCode::size(N)->generate($url) !!}`
+- El QR codifica la URL directa a `admin.loans.show` del préstamo
+- Solo se muestra al usuario mientras `status === 'pending'`
+
+---
+
+## Auditoría del sistema
+
+| Evento | Disparador | Descripción |
+|---|---|---|
+| `created` | `BookObserver` | Al crear un libro |
+| `updated` | `BookObserver` | Al editar un libro |
+| `deleted` | `BookObserver` | Al eliminar un libro |
+| `updated` | `LoanController@confirmPickup` | Cambio `pending → active` |
+| `updated` | `LoanController@markReturned` | Cambio a `returned` |
+| `login_failed` | `AuthController@login` | Intento fallido (guarda email + IP) |
+
+- `BookObserver` captura el usuario autenticado con `Auth::id()`
+- Los últimos **8 registros** se muestran en el dashboard del admin
+
+---
+
+## Rutas
+
+```
+GET  /                    → redirect al login
+
+GET|POST /login           → AuthController       (middleware: guest)
+POST     /logout          → AuthController
+
+── Grupo admin ─── middleware: auth + role:admin | prefijo: /admin | nombre: admin. ──
+
+GET    /admin/dashboard                          → Admin\DashboardController
+resources admin.users, admin.books, admin.categories, admin.authors (CRUD completo)
+GET|POST /admin/loans (index, show, destroy, create, store)
+PATCH  /admin/loans/{loan}/return                → Admin\LoanController@markReturned
+PATCH  /admin/loans/{loan}/confirm-pickup        → Admin\LoanController@confirmPickup
+PATCH  /admin/users/{user}/toggle-active         → Admin\UserController@toggleActive
+PATCH  /admin/users/{user}/change-password       → Admin\UserController@changePassword
+
+── Grupo usuario ─── middleware: auth + role:user ──
+
+GET  /catalogo                                   → User\CatalogoController@index
+GET  /catalogo/categoria/{category}              → User\CatalogoController@byCategory
+GET  /catalogo/autor/{author}                    → User\CatalogoController@byAuthor
+GET  /libros/{book}                              → User\CatalogoController@show
+POST /libros/{book}/reservar                     → User\LoanController@store
+GET  /perfil                                     → User\ProfileController@index
+```
+
+---
+
+## Pruebas automatizadas
+
+Las pruebas viven en `tests/Feature/` y `tests/Unit/`. El entorno de prueba usa SQLite en memoria — no se necesitan cambios en `.env`.
+
+Usuarios sembrados por `DatabaseSeeder`:
+
+| Email | Contraseña | Rol | Estado |
+|---|---|---|---|
+| `admin@biblioteca.com` | `password` | admin | activo |
+| `user@biblioteca.com` | `password` | user | activo |
