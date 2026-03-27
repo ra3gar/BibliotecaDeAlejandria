@@ -47,6 +47,12 @@ class CatalogoController extends Controller
     {
         $book->load('category', 'authors');
 
-        return view('user.book-detail', compact('book'));
+        // Verificar si el usuario ya tiene una reserva activa o pendiente de este libro
+        $userLoan = auth()->user()->loans()
+            ->where('book_id', $book->id)
+            ->whereIn('status', ['pending', 'active'])
+            ->first();
+
+        return view('user.book-detail', compact('book', 'userLoan'));
     }
 }

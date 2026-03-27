@@ -1,7 +1,8 @@
-# CLAUDE.md — Guía Maestra del Proyecto
+# CLAUDE.md
 
-> Archivo de instrucciones para Claude Code (claude.ai/code).
-> Define el contexto, la arquitectura y las reglas de negocio del sistema.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+> Guía maestra del proyecto. Define el contexto, la arquitectura y las reglas de negocio del sistema.
 
 ---
 
@@ -38,6 +39,15 @@ php artisan migrate --seed
 
 # Reiniciar la base de datos desde cero (¡elimina todo!)
 php artisan migrate:fresh --seed
+
+# Enlazar almacenamiento público (obligatorio para ver portadas y fotos de autores)
+php artisan storage:link
+
+# Limpiar cachés de Laravel (útil si los cambios no se reflejan)
+php artisan config:clear && php artisan cache:clear && php artisan view:clear
+
+# Si los estilos no cargan con Vite, eliminar el archivo residual de hot reload
+rm -f public/hot
 ```
 
 ---
@@ -85,6 +95,8 @@ Uso en Blade: `bg-(--color-background)`, `text-(--color-primary)`, etc.
 `.btn-primary`, `.btn-secondary`, `.btn-ghost`, `.btn-danger`, `.form-input`, `.form-label`, `.card`, `.card-parchment`
 
 **Animaciones**: `.lib-animate` (fade-up individual) y `.lib-stagger` (entrada escalonada para grids)
+
+**Contraste sobre fondo de imagen**: Los elementos que aparecen directamente sobre `Fondo2.jpg` (sin contenedor propio) usan tonos claros: `text-parchment-100/200/300` para textos, `text-gold-400` para acentos activos. Los elementos dentro de cards (`bg-parchment-50`) mantienen sus colores oscuros originales.
 
 ---
 
@@ -138,7 +150,7 @@ Ubicados en `public/images/` — se sirven **directamente** (no usan `Storage::d
 |---|---|
 | `logo.png` | Logo en login, sidebar admin y navbar usuario |
 | `Fondo.png` | Imagen de fondo de la pantalla de login |
-| `Fondo2.jpg` | Fondo del panel admin y catálogo de usuario |
+| `Fondo2.jpg` | Imagen de fondo del portal de usuario (aplicada globalmente en `layouts/app.blade.php`). Las secciones de los catálogos usan fondo semi-transparente (`/80 backdrop-blur-sm`) para dejar ver la imagen. |
 
 Referencia en Blade: `{{ asset('images/archivo.ext') }}`
 
@@ -180,10 +192,11 @@ PK estándar `id`. Implementa el flujo híbrido presencial + web con código QR.
 
 **Flujo completo**:
 ```
-[1] Usuario reserva online  →  status = 'pending'  +  stock--  +  qr_token generado
+[1] Usuario reserva online  →  status = 'pending'  +  stock--  +  qr_token generado  +  email encolado
 [2] Usuario muestra QR en la biblioteca
 [3] Admin confirma entrega  →  status = 'active'   +  audit_log
 [4] Admin marca devuelto    →  status = 'returned' +  stock++   +  audit_log
+[C] Usuario cancela         →  solo desde 'pending' → stock++   +  audit_log(deleted) + loan eliminado
 [E] Incumplimiento          →  status = 'overdue'  (manual, sin movimiento de stock)
 ```
 
@@ -195,6 +208,7 @@ PK estándar `id`. Implementa el flujo híbrido presencial + web con código QR.
 
 - `confirmPickup` — cambia `pending → active`; graba en `audit_logs`
 - `markReturned` — incrementa `available_copies`; protegido contra doble ejecución; graba en `audit_logs`
+- `cancel` — permite al usuario cancelar su propia reserva si está en `pending`; restaura `available_copies`; graba en `audit_logs`; elimina el registro
 - El usuario puede auto-reservar desde la vista de detalle del libro (`POST /libros/{book}/reservar`)
 
 ### `AuditLog` — Auditoría (`audit_logs`)
@@ -225,6 +239,17 @@ Tabla intermedia sin `id` propio ni timestamps. Se gestiona con `$book->authors(
 
 ---
 
+## Email de confirmación de reserva
+
+- Mailable: `App\Mail\ReservaConfirmadaMail` — implementa `ShouldQueue` (se encola automáticamente)
+- Vista: `resources/views/emails/reserva-confirmada.blade.php` — template HTML con estilos inline
+- QR en el email: generado via `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={url}` (PNG, no requiere imagick)
+- Disparado en `User\LoanController@store` tras crear la reserva
+- Driver de correo: `MAIL_MAILER=log` en desarrollo — los emails se escriben en `storage/logs/laravel.log`
+- El `queue:listen` incluido en `composer dev` procesa los envíos automáticamente
+
+---
+
 ## Auditoría del sistema
 
 | Evento | Disparador | Descripción |
@@ -234,6 +259,7 @@ Tabla intermedia sin `id` propio ni timestamps. Se gestiona con `$book->authors(
 | `deleted` | `BookObserver` | Al eliminar un libro |
 | `updated` | `LoanController@confirmPickup` | Cambio `pending → active` |
 | `updated` | `LoanController@markReturned` | Cambio a `returned` |
+| `deleted` | `User\LoanController@cancel` | Cancelación de reserva por el usuario |
 | `login_failed` | `AuthController@login` | Intento fallido (guarda email + IP) |
 
 - `BookObserver` captura el usuario autenticado con `Auth::id()`
@@ -265,7 +291,8 @@ GET  /catalogo                                   → User\CatalogoController@ind
 GET  /catalogo/categoria/{category}              → User\CatalogoController@byCategory
 GET  /catalogo/autor/{author}                    → User\CatalogoController@byAuthor
 GET  /libros/{book}                              → User\CatalogoController@show
-POST /libros/{book}/reservar                     → User\LoanController@store
+POST   /libros/{book}/reservar                   → User\LoanController@store
+DELETE /prestamos/{loan}/cancelar                → User\LoanController@cancel
 GET  /perfil                                     → User\ProfileController@index
 ```
 
@@ -281,3 +308,6 @@ Usuarios sembrados por `DatabaseSeeder`:
 |---|---|---|---|
 | `admin@biblioteca.com` | `password` | admin | activo |
 | `user@biblioteca.com` | `password` | user | activo |
+| `adulto@biblioteca.com` | `password` | user | activo |
+
+> `adulto@biblioteca.com` tiene `birth_date` con 20 años calculados — solo se inserta con el SQL en `guias/`. Sirve para probar el rechazo por `min_age` en préstamos. El `user@biblioteca.com` no tiene `birth_date`, por lo que la validación de edad se omite para ese usuario.

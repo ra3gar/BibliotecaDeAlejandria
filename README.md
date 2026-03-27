@@ -207,7 +207,7 @@ BibliotecaDeAlejandria/
 │   │   │   │   └── UserController.php        # CRUD + activar/desactivar + cambiar contraseña
 │   │   │   ├── User/
 │   │   │   │   ├── CatalogoController.php    # Catálogo público, filtros por categoría y autor
-│   │   │   │   ├── LoanController.php        # Auto-reserva de libros por el usuario
+│   │   │   │   ├── LoanController.php        # Auto-reserva + cancelación de reservas pendientes
 │   │   │   │   └── ProfileController.php     # Perfil del usuario con historial de préstamos
 │   │   │   └── AuthController.php            # Login, logout + auditoría de fallos
 │   │   └── Middleware/
@@ -219,6 +219,8 @@ BibliotecaDeAlejandria/
 │   │   ├── Author.php        # photo_path, photo_url accessor, bio
 │   │   ├── Loan.php          # status (pending/active/returned/overdue), qr_token, scopes
 │   │   └── AuditLog.php      # Registro de auditoría
+│   ├── Mail/
+│   │   └── ReservaConfirmadaMail.php  # Mailable encolable — email de confirmación de reserva
 │   ├── Observers/
 │   │   └── BookObserver.php  # Graba en audit_logs al crear/editar/eliminar libros
 │   └── Providers/
@@ -253,8 +255,10 @@ BibliotecaDeAlejandria/
 │       └── user/
 │           ├── catalogo.blade.php
 │           ├── catalogo-filtrado.blade.php
-│           ├── book-detail.blade.php   # Con botón "Reservar este libro"
-│           └── profile.blade.php       # Con QR colapsable para préstamos pendientes
+│           ├── book-detail.blade.php   # Estado contextual: reservar/QR/cancelar según estado
+│           └── profile.blade.php       # Con QR colapsable y cancelación para préstamos pendientes
+│       └── emails/
+│           └── reserva-confirmada.blade.php  # Template HTML del email de confirmación
 │
 ├── storage/
 │   └── app/public/
@@ -306,6 +310,34 @@ El flujo de préstamo combina una reserva web con entrega presencial verificada 
 3. **Entrega física** — el usuario se presenta en la biblioteca con el QR en pantalla. El admin escanea el QR o busca el préstamo manualmente y hace clic en "Confirmar entrega". El préstamo pasa a estado `active`.
 4. **Devolución** — cuando el usuario regresa el libro físico, el admin hace clic en "Marcar como devuelto". El préstamo pasa a `returned` y el stock se incrementa.
 
+### Cancelación de reservas por el usuario
+
+- El usuario puede cancelar una reserva mientras está en estado `pending` (antes de que el admin confirme la entrega)
+- Disponible desde la página de detalle del libro y desde el perfil del usuario
+- Al cancelar: el stock se restaura automáticamente y se registra en la auditoría
+- Un modal de confirmación (Alpine.js) previene cancelaciones accidentales
+- Los préstamos en estado `active` no pueden cancelarse (el libro ya está físicamente en manos del usuario)
+
+### Confirmación de reserva con modal
+
+- Al hacer clic en "Reservar este libro", se muestra un modal de confirmación con el título del libro antes de enviar el formulario
+- Al cancelar una reserva, también se muestra un modal equivalente para confirmar la acción
+
+### Email de confirmación de reserva
+
+- Al reservar un libro, el sistema envía automáticamente un email de confirmación al correo registrado del usuario
+- El email incluye: título del libro, fecha de reserva, estado, y un código QR para presentar en la biblioteca
+- El QR se genera via [api.qrserver.com](https://api.qrserver.com) (servicio externo gratuito, no requiere extensión imagick)
+- Los emails se procesan en cola (`queue:listen` corre automáticamente con `composer dev`)
+- En desarrollo: `MAIL_MAILER=log` — los emails se escriben en `storage/logs/laravel.log` en lugar de enviarse realmente
+
+### Sistema visual — Fondo y contraste
+
+- `Fondo2.jpg` se aplica como fondo fijo (`background-attachment: fixed`) en todas las páginas del portal de usuario a través del layout principal (`layouts/app.blade.php`)
+- Las secciones de los catálogos (categorías, autores, libros filtrados) usan fondos semi-transparentes (`bg-parchment-50/80` con `backdrop-blur-sm`) para dejar ver la imagen sin perder legibilidad
+- Los elementos que aparecen directamente sobre la imagen (breadcrumb de detalle de libro, encabezado y pestañas del perfil) usan colores claros (`text-parchment-100/300`, `text-gold-400`) para garantizar contraste
+- Los contenidos dentro de tarjetas y paneles (`bg-parchment-50`) mantienen los colores oscuros del sistema "Códice Antiguo"
+
 ### Restricción de edad en préstamos
 
 - Cada libro puede tener un campo `min_age` (entero, default 0)
@@ -335,6 +367,7 @@ El flujo de préstamo combina una reserva web con entrega presencial verificada 
 | `deleted` | `BookObserver` | Al eliminar un libro |
 | `updated` | `LoanController` | Al confirmar entrega de un préstamo (`pending → active`) |
 | `updated` | `LoanController` | Al registrar devolución de un préstamo (`→ returned`) |
+| `deleted` | `User\LoanController` | Cancelación de reserva por el usuario (restaura stock) |
 | `login_failed` | `AuthController` | Intento de login fallido — registra email e IP |
 
 ---
@@ -372,4 +405,4 @@ Ubicadas en `public/images/` (no requieren `storage:link`):
 |---|---|
 | `logo.png` | Logo del sistema en header y pantalla de login |
 | `Fondo.png` | Imagen de fondo de la pantalla de login |
-| `Fondo2.jpg` | Imagen de fondo del panel de administración y catálogo |
+| `Fondo2.jpg` | Imagen de fondo del portal de usuario — aplicada globalmente en `layouts/app.blade.php` (cubre todas las páginas de usuario: catálogo, filtros, detalle de libro y perfil) |

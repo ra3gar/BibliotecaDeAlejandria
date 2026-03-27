@@ -11,7 +11,8 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @stack('page-styles')
 </head>
-<body class="bg-parchment-200 font-sans antialiased">
+<body class="bg-parchment-100 font-sans antialiased"
+      style="background-image: url('{{ asset('images/Fondo2.jpg') }}'); background-size: cover; background-attachment: fixed; background-position: center;">
 
 {{-- Navbar --}}
 <nav class="bg-mahogany-950 text-parchment-200 shadow-md border-b border-gold-700/20">

@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/catalogo/autor/{author}', [CatalogoController::class, 'byAuthor'])->name('catalogo.autor');
         Route::get('/libros/{book}', [CatalogoController::class, 'show'])->name('books.show');
         Route::post('/libros/{book}/reservar', [UserLoanController::class, 'store'])->name('books.reserve');
+        Route::delete('/prestamos/{loan}/cancelar', [UserLoanController::class, 'cancel'])->name('loans.cancel');
         Route::get('/perfil', [ProfileController::class, 'index'])->name('profile');
     });
 });

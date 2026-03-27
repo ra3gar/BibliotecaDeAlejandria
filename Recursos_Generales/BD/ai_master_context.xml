@@ -1,0 +1,739 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ╔══════════════════════════════════════════════════════════════════════════╗
+  ║          BIBLIOTECA DE ALEJANDRÍA — AI MASTER CONTEXT DOCUMENT          ║
+  ║   Generado para consumo de IA. Fecha: 2026-03-27. Versión: 4.0         ║
+  ╚══════════════════════════════════════════════════════════════════════════╝
+  INSTRUCCIÓN PARA LA IA LECTORA:
+  Este documento describe exhaustivamente el sistema. Léelo completo antes
+  de sugerir cualquier cambio. Respeta TODAS las reglas de negocio listadas
+  en <core_logic_and_rules> sin excepción.
+-->
+
+<ai_master_context>
+
+  <!-- ================================================================== -->
+  <project_overview>
+  <!-- ================================================================== -->
+    <name>Biblioteca de Alejandría</name>
+    <version>4.0</version>
+    <context>
+      Sistema de gestión de biblioteca física desarrollado para la materia
+      Programación Aplicada 1 — Universidad UPED 2026.
+    </context>
+
+    <purpose>
+      Plataforma web que digitaliza el flujo completo de préstamos de libros
+      físicos en una biblioteca. Combina autoservicio web para usuarios con
+      gestión presencial para administradores, conectando ambos canales
+      mediante códigos QR.
+    </purpose>
+
+    <core_business_logic>
+      El sistema opera con un modelo híbrido (web + presencial + QR):
+      1. El usuario reserva un libro desde la web → el stock desciende
+         inmediatamente y se genera un QR único vinculado al préstamo.
+      2. El usuario asiste físicamente a la biblioteca y muestra el QR.
+      3. El administrador escanea/confirma el QR → el préstamo pasa a activo.
+      4. Al devolver el libro, el administrador lo marca como devuelto →
+         el stock se restaura automáticamente.
+
+      Adicionalmente, el sistema restringe préstamos por edad mínima del libro
+      y registra una pista de auditoría completa e inmutable de todas las
+      operaciones críticas.
+    </core_business_logic>
+
+    <user_roles>
+      <role name="admin">
+        Panel privado en /admin. Gestión CRUD completa de libros, autores,
+        categorías, usuarios y préstamos. Puede confirmar entregas, marcar
+        devoluciones, activar/desactivar usuarios y cambiar contraseñas.
+        Ve el dashboard con estadísticas globales y los últimos 8 registros
+        de auditoría.
+      </role>
+      <role name="user">
+        Portal en /catalogo. Puede navegar el catálogo, filtrar por categoría
+        o autor, ver el detalle de un libro y auto-reservarlo. Ve su perfil
+        y el historial de sus propios préstamos. El QR de un préstamo
+        pending es visible en su portal.
+      </role>
+    </user_roles>
+  </project_overview>
+
+
+  <!-- ================================================================== -->
+  <tech_stack>
+  <!-- ================================================================== -->
+    <backend>
+      <language>PHP 8.2+</language>
+      <framework>Laravel 12</framework>
+      <pattern>MVC estándar — controladores divididos en Admin/ y User/</pattern>
+      <auth>Sistema nativo de Laravel (Auth facade + middleware personalizado)</auth>
+      <queue>Laravel Queue (usado en dev con php artisan queue:listen)</queue>
+    </backend>
+
+    <frontend>
+      <bundler>Vite 7 + laravel-vite-plugin</bundler>
+      <css_framework>Tailwind CSS v4 (configurado vía @theme en app.css, NO tailwind.config.js)</css_framework>
+      <js_framework>Alpine.js 3.x (comportamientos reactivos inline en Blade)</js_framework>
+      <templating>Laravel Blade (.blade.php)</templating>
+      <typography>
+        Google Fonts — Inter (sans-serif, cuerpo) y Playfair Display (serif, títulos)
+      </typography>
+    </frontend>
+
+    <database>
+      <development>MySQL 8.0 (base de datos: biblioteca_alejandria)</development>
+      <testing>SQLite en memoria (configurado en phpunit.xml, sin cambios en .env)</testing>
+    </database>
+
+    <key_packages>
+      <package name="simplesoftwareio/simple-qrcode" version="^4.2">
+        Generación de códigos QR en SVG inline. Alias de facade: QrCode.
+        Uso: {!! QrCode::size(N)->generate($url) !!}
+      </package>
+      <package name="laravel/pint">
+        Linter/formateador de código PHP. Ejecutar solo en archivos modificados:
+        vendor/bin/pint --dirty
+      </package>
+      <package name="phpunit/phpunit" version="^11.5.3">
+        Framework de pruebas via php artisan test
+      </package>
+    </key_packages>
+
+    <infrastructure>
+      Sin Docker ni contenedores. Entorno LAMP/WAMP local estándar.
+      Servidor de desarrollo: php artisan serve (incluido en composer dev).
+    </infrastructure>
+  </tech_stack>
+
+
+  <!-- ================================================================== -->
+  <architecture_and_flow>
+  <!-- ================================================================== -->
+    <directory_structure>
+      <path name="app/Http/Controllers/Admin/">
+        Panel de administración: DashboardController, BookController,
+        UserController, LoanController, CategoryController, AuthorController.
+      </path>
+      <path name="app/Http/Controllers/User/">
+        Portal de usuario: CatalogoController, LoanController, ProfileController.
+      </path>
+      <path name="app/Http/Controllers/">
+        AuthController (login/logout compartido).
+      </path>
+      <path name="app/Models/">
+        User, Book, Loan, Author, Category, AuditLog.
+      </path>
+      <path name="app/Http/Middleware/">
+        CheckRole — protege rutas por rol y estado de cuenta.
+      </path>
+      <path name="app/Observers/">
+        BookObserver — audita eventos de Book automáticamente.
+      </path>
+      <path name="app/Providers/">
+        AppServiceProvider — registra BookObserver en Book.
+      </path>
+      <path name="database/migrations/">
+        Migraciones cronológicas. Ver sección database_schema.
+      </path>
+      <path name="resources/views/">
+        Blade views. Layouts: layouts/app.blade.php (usuario, incluye Fondo2.jpg
+        como fondo global para todas las páginas del portal) y layouts/admin.blade.php (admin).
+      </path>
+      <path name="resources/css/app.css">
+        Punto de entrada de Tailwind v4. Define @theme con toda la paleta
+        del sistema "Códice Antiguo". NO existe tailwind.config.js.
+      </path>
+      <path name="public/images/">
+        Activos estáticos servidos directamente (logo.png, Fondo.png, Fondo2.jpg).
+        NO usar Storage::disk para estos archivos.
+      </path>
+      <path name="storage/app/public/">
+        Archivos subidos por usuarios: books/ (portadas), authors/ (fotos).
+        Enlazados con php artisan storage:link.
+      </path>
+    </directory_structure>
+
+    <request_lifecycle>
+      1. El navegador envía una petición HTTP a routes/web.php.
+      2. Los middlewares auth y role:X validan sesión y rol antes de
+         llegar al controlador. CheckRole también verifica is_active.
+      3. El controlador ejecuta la lógica de negocio, interactúa con
+         los modelos Eloquent (que acceden a MySQL).
+      4. El controlador retorna una Blade view renderizada (o un redirect).
+      5. Vite inyecta los assets compilados (CSS + JS) en el layout.
+    </request_lifecycle>
+
+    <authentication_flow>
+      - POST /login → AuthController@login
+      - Valida email/password contra book_store_users
+      - Si falla: graba login_failed en audit_logs (con email + IP)
+      - Si éxito: redirige según rol:
+          admin → /admin/dashboard
+          user  → /catalogo
+      - CheckRole middleware bloquea accesos cruzados de rol
+      - Usuarios con is_active=false son deslogueados automáticamente
+        por CheckRole y redirigidos a /login con mensaje de error
+    </authentication_flow>
+
+    <admin_flow>
+      /admin/dashboard → estadísticas globales (conteos de books, loans,
+                          users activos, últimos 8 audit_logs)
+      /admin/books     → CRUD completo con upload de portada (storage/public/books/)
+      /admin/authors   → CRUD completo con upload de foto (storage/app/public/authors/)
+      /admin/categories → CRUD simple
+      /admin/users     → CRUD + toggleActive + changePassword
+      /admin/loans     → lista, detalle, crear manual, confirmar QR, marcar devuelto
+    </admin_flow>
+
+    <user_flow>
+      /catalogo              → grid de últimos libros (orderBy created_at desc)
+      /catalogo/categoria/X  → libros filtrados por categoría
+      /catalogo/autor/X      → libros filtrados por autor
+      /libros/{book}         → detalle del libro + estado contextual según reserva del usuario:
+                               sin reserva: modal de confirmación para reservar
+                               reserva pending: QR colapsable + botón cancelar (con modal)
+                               reserva active: mensaje "libro en tu poder"
+      POST /libros/{book}/reservar → User\LoanController@store + email encolado
+      DELETE /prestamos/{loan}/cancelar → User\LoanController@cancel
+      /perfil                → datos del usuario + historial de préstamos + QR/cancelar para pending
+    </user_flow>
+
+    <mail_system>
+      <mailable>App\Mail\ReservaConfirmadaMail — encolada (ShouldQueue)</mailable>
+      <template>resources/views/emails/reserva-confirmada.blade.php — HTML inline</template>
+      <qr_in_email>
+        No usa simplesoftwareio/simple-qrcode (requiere imagick para PNG, no instalado).
+        Usa API externa: https://api.qrserver.com/v1/create-qr-code/?size=180x180&amp;data={url}
+        Se incrusta como img tag — el cliente de correo descarga la imagen al abrir.
+      </qr_in_email>
+      <driver_dev>MAIL_MAILER=log — emails en storage/logs/laravel.log</driver_dev>
+      <queue>Mail::to(email)->queue() — procesado por queue:listen (incluido en composer dev)</queue>
+    </mail_system>
+  </architecture_and_flow>
+
+
+  <!-- ================================================================== -->
+  <database_schema>
+  <!-- ================================================================== -->
+    <table name="book_store_users">
+      <description>
+        Tabla de usuarios del sistema. Nombre personalizado para evitar
+        colisión con otros proyectos Laravel en el mismo servidor.
+        El modelo User tiene $table = 'book_store_users'.
+      </description>
+      <columns>
+        <col name="id" type="bigint unsigned PK auto_increment"/>
+        <col name="first_name" type="string"/>
+        <col name="last_name" type="string"/>
+        <col name="email" type="string UNIQUE"/>
+        <col name="password" type="string (hashed)"/>
+        <col name="role" type="ENUM('admin','user') default 'user'"/>
+        <col name="is_active" type="boolean default true"/>
+        <col name="birth_date" type="date NULLABLE"/>
+        <col name="remember_token" type="string NULLABLE"/>
+        <col name="created_at" type="timestamp"/>
+        <col name="updated_at" type="timestamp"/>
+      </columns>
+      <model_helpers>
+        isAdmin()   → true si role = 'admin'
+        isActive()  → true si is_active = 1
+        age()       → edad en años (int) o null si birth_date es NULL
+        full_name   → accesor: "first_name last_name"
+      </model_helpers>
+      <relationships>
+        hasMany(Loan::class)
+      </relationships>
+    </table>
+
+    <table name="categories">
+      <columns>
+        <col name="id" type="bigint unsigned PK auto_increment"/>
+        <col name="name" type="string"/>
+        <col name="description" type="text NULLABLE"/>
+        <col name="created_at" type="timestamp"/>
+        <col name="updated_at" type="timestamp"/>
+      </columns>
+      <relationships>
+        hasMany(Book::class) — ON DELETE SET NULL (los libros quedan sin categoría)
+      </relationships>
+    </table>
+
+    <table name="authors">
+      <columns>
+        <col name="id" type="bigint unsigned PK auto_increment"/>
+        <col name="first_name" type="string"/>
+        <col name="last_name" type="string"/>
+        <col name="bio" type="text NULLABLE"/>
+        <col name="photo_path" type="string NULLABLE (ruta en Storage::disk public)"/>
+        <col name="created_at" type="timestamp"/>
+        <col name="updated_at" type="timestamp"/>
+      </columns>
+      <model_helpers>
+        full_name  → accesor: "first_name last_name"
+        photo_url  → accesor: URL pública si photo_path existe, null si no
+      </model_helpers>
+      <relationships>
+        belongsToMany(Book::class, 'book_author')
+      </relationships>
+      <file_handling>
+        Fotos en Storage::disk('public'), carpeta authors/.
+        Al actualizar: eliminar foto anterior ANTES de guardar la nueva.
+        Al eliminar autor: eliminar foto del disco automáticamente.
+        Formatos: jpeg, jpg, png. Máximo: 2 MB.
+      </file_handling>
+    </table>
+
+    <table name="books">
+      <columns>
+        <col name="id" type="bigint unsigned PK auto_increment"/>
+        <col name="title" type="string"/>
+        <col name="isbn" type="string UNIQUE NULLABLE"/>
+        <col name="summary" type="text NULLABLE"/>
+        <col name="publisher" type="string NULLABLE"/>
+        <col name="category_id" type="bigint unsigned FK NULLABLE → categories.id SET NULL"/>
+        <col name="book_cover" type="string NULLABLE (ruta en Storage::disk public)"/>
+        <col name="published_at" type="date NULLABLE"/>
+        <col name="año" type="int NULLABLE (derivado de published_at, NO lo envía el form)"/>
+        <col name="stock_total" type="int unsigned default 1"/>
+        <col name="available_copies" type="int unsigned default 1"/>
+        <col name="min_age" type="int unsigned default 0 (0 = sin restricción)"/>
+        <col name="created_at" type="timestamp"/>
+        <col name="updated_at" type="timestamp"/>
+      </columns>
+      <model_helpers>
+        isAvailable() → true si available_copies > 0
+      </model_helpers>
+      <relationships>
+        belongsTo(Category::class)
+        belongsToMany(Author::class, 'book_author')
+        hasMany(Loan::class)
+      </relationships>
+      <observer>
+        BookObserver registrado en AppServiceProvider.
+        Graba en audit_logs en: created, updated, deleted.
+      </observer>
+      <important_deleted_columns>
+        codigo_interno y path_pdf fueron eliminados en migración
+        2026_03_15_000001. NO reintroducir estos campos.
+      </important_deleted_columns>
+    </table>
+
+    <table name="book_author" type="pivot">
+      <description>Tabla intermedia Many-to-Many entre books y authors.</description>
+      <columns>
+        <col name="book_id" type="bigint unsigned FK → books.id CASCADE DELETE"/>
+        <col name="author_id" type="bigint unsigned FK → authors.id CASCADE DELETE"/>
+      </columns>
+      <notes>
+        Sin id propio ni timestamps.
+        Gestionar siempre con: $book->authors()->sync([...])
+      </notes>
+    </table>
+
+    <table name="loans">
+      <description>
+        Préstamos físicos. Implementa el flujo híbrido web+presencial con QR.
+      </description>
+      <columns>
+        <col name="id" type="bigint unsigned PK auto_increment"/>
+        <col name="user_id" type="bigint unsigned FK → book_store_users.id CASCADE"/>
+        <col name="book_id" type="bigint unsigned FK → books.id CASCADE"/>
+        <col name="loan_date" type="date (fecha de la reserva online)"/>
+        <col name="return_date" type="date NULLABLE (solo al devolver)"/>
+        <col name="status" type="ENUM('pending','active','returned','overdue')"/>
+        <col name="qr_token" type="string UNIQUE NULLABLE (UUID generado al crear)"/>
+        <col name="created_at" type="timestamp"/>
+        <col name="updated_at" type="timestamp"/>
+      </columns>
+      <status_machine>
+        pending  → active    : Admin confirma entrega (confirmPickup)
+        active   → returned  : Admin marca devuelto (markReturned)
+        *        → overdue   : Asignación manual (sin movimiento de stock)
+      </status_machine>
+      <relationships>
+        belongsTo(User::class)
+        belongsTo(Book::class)
+      </relationships>
+      <query_scopes>
+        filterUser($userId)
+        filterBook($bookId)
+        filterCategory($categoryId)
+        filterAuthor($authorId)
+        filterStatus($status)
+      </query_scopes>
+    </table>
+
+    <table name="audit_logs">
+      <description>
+        Registro de auditoría inmutable. Sin updated_at por diseño.
+        Los logs NUNCA se modifican después de creados.
+      </description>
+      <columns>
+        <col name="id" type="bigint unsigned PK auto_increment"/>
+        <col name="user_id" type="bigint unsigned FK NULLABLE → book_store_users.id SET NULL"/>
+        <col name="action" type="string (created|updated|deleted|login_failed)"/>
+        <col name="model_type" type="string NULLABLE (ej: App\Models\Book)"/>
+        <col name="model_id" type="bigint NULLABLE"/>
+        <col name="description" type="text NULLABLE"/>
+        <col name="created_at" type="timestamp"/>
+      </columns>
+      <audit_sources>
+        BookObserver              → created, updated, deleted (de Book)
+        LoanController            → updated (confirmPickup: pending→active)
+        LoanController            → updated (markReturned: →returned)
+        User\LoanController@cancel → deleted (cancelación de reserva por el usuario)
+        AuthController            → login_failed (guarda email + IP en description)
+      </audit_sources>
+    </table>
+
+    <key_relationships_summary>
+      Book  ─── N:M ───  Author   (vía book_author pivot)
+      Book  ─── N:1 ───  Category (nullable, SET NULL on delete)
+      Book  ─── 1:N ───  Loan
+      User  ─── 1:N ───  Loan
+      User  ─── 1:N ───  AuditLog (nullable, SET NULL on delete)
+    </key_relationships_summary>
+  </database_schema>
+
+
+  <!-- ================================================================== -->
+  <operational_parameters>
+  <!-- ================================================================== -->
+    <environment_variables>
+      <note>
+        Las siguientes claves son REQUERIDAS en el archivo .env de la raíz.
+        NUNCA incluir los valores reales en documentación o repositorios.
+      </note>
+      <var name="APP_NAME">Nombre de la aplicación (ej: "Biblioteca de Alejandría")</var>
+      <var name="APP_ENV">Entorno (local | production)</var>
+      <var name="APP_KEY">Clave de cifrado de Laravel (generada con php artisan key:generate)</var>
+      <var name="APP_DEBUG">true en desarrollo, false en producción</var>
+      <var name="APP_URL">URL base del servidor (ej: http://localhost:8000)</var>
+      <var name="DB_CONNECTION">mysql</var>
+      <var name="DB_HOST">127.0.0.1</var>
+      <var name="DB_PORT">3306</var>
+      <var name="DB_DATABASE">biblioteca_alejandria</var>
+      <var name="DB_USERNAME">root (o usuario MySQL con permisos)</var>
+      <var name="DB_PASSWORD">Contraseña del usuario MySQL</var>
+      <var name="BCRYPT_ROUNDS">10 (en producción). Las pruebas usan 4 automáticamente</var>
+    </environment_variables>
+
+    <setup_commands>
+      <step order="1" description="Instalación completa desde cero">
+        composer setup
+        (Instala dependencias PHP y Node, genera APP_KEY, ejecuta migraciones y seeders, compila assets)
+      </step>
+      <step order="2" description="Arrancar el entorno de desarrollo completo">
+        composer dev
+        (Lanza en paralelo: php artisan serve + php artisan queue:listen + vite --hot)
+      </step>
+      <step order="3" description="Crear enlace simbólico para storage (solo 1 vez)">
+        php artisan storage:link
+        (Necesario para servir fotos de autores y portadas de libros)
+      </step>
+      <step order="alt_reset" description="Reiniciar BD desde cero (DESTRUCTIVO — elimina todos los datos)">
+        php artisan migrate:fresh --seed
+      </step>
+    </setup_commands>
+
+    <test_commands>
+      <cmd>composer test                          — Ejecuta todas las pruebas</cmd>
+      <cmd>php artisan test tests/Feature/X.php  — Un archivo específico</cmd>
+      <cmd>php artisan test --filter=nombre_test — Un test por nombre</cmd>
+      <note>
+        Las pruebas usan SQLite en memoria (phpunit.xml). No requieren MySQL.
+        DatabaseSeeder crea dos usuarios de prueba:
+        admin@biblioteca.com / password (rol: admin)
+        user@biblioteca.com  / password (rol: user)
+      </note>
+    </test_commands>
+
+    <code_quality>
+      <cmd>vendor/bin/pint --dirty  — Formatea solo archivos modificados</cmd>
+    </code_quality>
+
+    <critical_dependencies>
+      <dep>PHP >= 8.2 con extensiones: pdo_mysql, mbstring, openssl, fileinfo</dep>
+      <dep>MySQL 8.0 con base de datos 'biblioteca_alejandria' creada previamente</dep>
+      <dep>Node.js + npm (para Vite y compilación de assets)</dep>
+      <dep>Composer 2.x</dep>
+      <dep>Storage link activo (php artisan storage:link) para imágenes subidas</dep>
+    </critical_dependencies>
+  </operational_parameters>
+
+
+  <!-- ================================================================== -->
+  <core_logic_and_rules>
+  <!-- ================================================================== -->
+    <rule id="STOCK-01" priority="CRITICAL">
+      <title>Decremento de stock en reserva, no en entrega</title>
+      <description>
+        available_copies se decrementa en el momento que el usuario crea
+        la reserva (status = pending). NO al confirmar la entrega física.
+        Esto garantiza que el stock web refleje el inventario real disponible.
+      </description>
+      <consequence>Al crear Loan: available_copies--. Al markReturned: available_copies++.</consequence>
+    </rule>
+
+    <rule id="STOCK-02" priority="CRITICAL">
+      <title>Límite de available_copies</title>
+      <description>
+        available_copies NUNCA puede superar stock_total.
+        La validación `lte:stock_total` está en BookController al crear/editar libros.
+      </description>
+    </rule>
+
+    <rule id="STOCK-03" priority="CRITICAL">
+      <title>Prerequisito de stock para reserva</title>
+      <description>
+        Un préstamo SOLO puede crearse si available_copies > 0.
+        Si el libro no tiene stock, se retorna error y NO se crea el préstamo.
+      </description>
+    </rule>
+
+    <rule id="LOAN-01" priority="CRITICAL">
+      <title>Guard anti-duplicados de préstamos</title>
+      <description>
+        Un usuario NO puede tener dos préstamos de status 'pending' o 'active'
+        del mismo libro simultáneamente. Se verifica en User\LoanController@store
+        y Admin\LoanController@store antes de crear el préstamo.
+      </description>
+    </rule>
+
+    <rule id="LOAN-02" priority="HIGH">
+      <title>Protección contra doble devolución</title>
+      <description>
+        markReturned verifica el status actual ANTES de modificar el registro.
+        Si el status ya es 'returned', la operación se rechaza silenciosamente.
+        Esto evita incrementos dobles de available_copies.
+      </description>
+    </rule>
+
+    <rule id="LOAN-03" priority="HIGH">
+      <title>Flujo de status estrictamente secuencial</title>
+      <description>
+        El flujo válido es: pending → active → returned.
+        No existen transiciones inversas (no se puede volver de active a pending).
+        overdue puede asignarse manualmente desde cualquier estado (sin movimiento de stock).
+      </description>
+    </rule>
+
+    <rule id="LOAN-04" priority="HIGH">
+      <title>Cancelación de reservas por el usuario</title>
+      <description>
+        Un usuario puede cancelar su propia reserva SOLO si status = 'pending'.
+        Al cancelar: available_copies++, audit_log(action=deleted), loan DELETE.
+        No se puede cancelar si status = 'active' (libro ya entregado físicamente).
+        La cancelación usa modal Alpine.js de confirmación (mismo estilo que la reserva).
+      </description>
+    </rule>
+
+    <rule id="AGE-01" priority="HIGH">
+      <title>Restricción de edad para préstamos</title>
+      <description>
+        Si Book.min_age > 0 Y el usuario tiene birth_date registrado,
+        se verifica que User.age() >= Book.min_age.
+        Si el usuario NO tiene birth_date → la verificación se OMITE (no bloquea).
+        Si Book.min_age = 0 → sin restricción de edad.
+      </description>
+    </rule>
+
+    <rule id="QR-01" priority="HIGH">
+      <title>Generación y visibilidad del QR</title>
+      <description>
+        qr_token (UUID) se genera con Str::uuid() al crear el préstamo.
+        El QR codifica la URL completa a admin.loans.show del préstamo.
+        El QR SOLO es visible al usuario mientras status = 'pending'.
+        Una vez confirmado (active), el QR deja de mostrarse.
+      </description>
+    </rule>
+
+    <rule id="AUDIT-01" priority="HIGH">
+      <title>Inmutabilidad de los audit_logs</title>
+      <description>
+        La tabla audit_logs no tiene updated_at. Los registros son de solo escritura.
+        NUNCA modificar ni eliminar registros de auditoría.
+        El modelo AuditLog tiene const UPDATED_AT = null.
+      </description>
+    </rule>
+
+    <rule id="AUTH-01" priority="HIGH">
+      <title>Cuentas inactivas</title>
+      <description>
+        El middleware CheckRole verifica is_active en cada request autenticado.
+        Si is_active = false → logout forzado + redirect a login con mensaje de error.
+        Un admin puede activar/desactivar cuentas desde /admin/users.
+      </description>
+    </rule>
+
+    <rule id="FILE-01" priority="MEDIUM">
+      <title>Gestión de archivos subidos</title>
+      <description>
+        Portadas de libros: Storage::disk('public'), carpeta books/.
+        Fotos de autores: Storage::disk('public'), carpeta authors/.
+        Al ACTUALIZAR: eliminar el archivo anterior del disco ANTES de guardar el nuevo.
+        Al ELIMINAR entidad: eliminar el archivo asociado del disco automáticamente.
+        Formatos aceptados: jpeg, jpg, png. Tamaño máximo: 2 MB.
+      </description>
+    </rule>
+
+    <rule id="FILE-02" priority="MEDIUM">
+      <title>Archivos estáticos del sistema</title>
+      <description>
+        logo.png, Fondo.png, Fondo2.jpg están en public/images/ y se sirven
+        DIRECTAMENTE con asset('images/archivo'). NO usar Storage::disk para estos.
+        Fondo2.jpg se aplica en el &lt;body&gt; de layouts/app.blade.php con background-image
+        (background-size: cover, background-attachment: fixed). Aplica a TODAS las
+        páginas del portal de usuario. Las secciones con fondo propio usan opacidad
+        parcial (/80) para permitir ver la imagen a través de ellas.
+      </description>
+    </rule>
+
+    <rule id="DB-01" priority="MEDIUM">
+      <title>Nombre de tabla de usuarios</title>
+      <description>
+        La tabla de usuarios se llama 'book_store_users', NO 'users'.
+        El modelo User tiene $table = 'book_store_users'.
+        Cualquier migración o query raw debe usar este nombre.
+      </description>
+    </rule>
+
+    <rule id="CSS-01" priority="MEDIUM">
+      <title>Tailwind v4 — Configuración exclusiva en CSS</title>
+      <description>
+        NO existe tailwind.config.js. Toda la configuración del tema está en
+        resources/css/app.css dentro del bloque @theme {}.
+        Los alias semánticos (--color-background, etc.) están en :root (NO en @theme)
+        para evitar conflictos con namespaces reservados de Tailwind v4.
+        Uso en Blade: bg-(--color-background), text-(--color-primary), etc.
+      </description>
+    </rule>
+
+    <rule id="CSS-02" priority="LOW">
+      <title>Componentes CSS reutilizables</title>
+      <description>
+        Clases disponibles en @layer components:
+        .btn-primary, .btn-secondary, .btn-ghost, .btn-danger
+        .form-input, .form-label
+        .card, .card-parchment
+        .lib-animate (fade-up), .lib-stagger (entrada escalonada para grids)
+        Usar estas clases antes de crear estilos inline nuevos.
+      </description>
+    </rule>
+
+    <rule id="YEAR-01" priority="LOW">
+      <title>Campo año en libros</title>
+      <description>
+        El campo 'año' en la tabla books se deriva automáticamente de published_at
+        dentro de BookController. El formulario de libros NO incluye este campo.
+        No pedir ni procesar 'año' desde los formularios.
+      </description>
+    </rule>
+
+    <rule id="CSS-03" priority="MEDIUM">
+      <title>Contraste de texto sobre imagen de fondo</title>
+      <description>
+        Los elementos que aparecen directamente sobre Fondo2.jpg (sin contenedor propio)
+        DEBEN usar colores claros para garantizar legibilidad:
+        - Textos principales: text-parchment-100
+        - Textos secundarios: text-parchment-300
+        - Acentos activos (pestañas, links hover): text-gold-400
+        - Separadores/bordes: border-parchment-300/40 o border-parchment-400/50
+        Los elementos dentro de cards con bg-parchment-50 o bg-parchment-100
+        mantienen sus colores oscuros (mahogany, sepia) sin restricción.
+      </description>
+    </rule>
+  </core_logic_and_rules>
+
+
+  <!-- ================================================================== -->
+  <current_status_and_todos>
+  <!-- ================================================================== -->
+    <current_state>
+      El sistema está en estado funcional y completo para su propósito académico.
+      Versión 3.0 añadió: modal de confirmación de reserva, cancelación de reservas
+      por el usuario, email de confirmación con QR incrustado, y corrección del QR
+      en el perfil (PNG via api.qrserver.com).
+      Versión 4.0 añade: fondo Fondo2.jpg aplicado globalmente en layouts/app.blade.php
+      (ya no por página individual), secciones de catálogo con fondos semi-transparentes,
+      y corrección de contraste de fuentes en elementos sobre la imagen de fondo.
+    </current_state>
+
+    <implemented_features>
+      <feature>Autenticación con roles (admin/user) y bloqueo de cuentas inactivas</feature>
+      <feature>CRUD completo de libros con portadas, autores, categorías</feature>
+      <feature>Gestión de autores con fotos</feature>
+      <feature>Sistema de préstamos físicos con flujo pending→active→returned</feature>
+      <feature>Reserva online con generación de QR único por préstamo</feature>
+      <feature>Restricciones de edad mínima por libro</feature>
+      <feature>Control de stock con doble protección (duplicados + doble devolución)</feature>
+      <feature>Dashboard de administrador con estadísticas y últimos 8 audit logs</feature>
+      <feature>Pista de auditoría inmutable para libros, préstamos y login fallido</feature>
+      <feature>Catálogo de usuario con filtros por categoría y autor</feature>
+      <feature>Perfil de usuario con historial de préstamos propios</feature>
+      <feature>Creación manual de préstamos desde el panel admin</feature>
+      <feature>Activación/desactivación de cuentas de usuario</feature>
+      <feature>Cambio de contraseña de usuario desde panel admin</feature>
+      <feature>Sistema de diseño completo "Códice Antiguo" con Tailwind v4</feature>
+      <feature>Modal de confirmación Alpine.js antes de reservar y antes de cancelar</feature>
+      <feature>Cancelación de reservas pendientes por el usuario (restaura stock + audit_log)</feature>
+      <feature>Email de confirmación de reserva con QR embebido (encolado, MAIL_MAILER=log en desarrollo)</feature>
+      <feature>QR en perfil corregido a PNG via api.qrserver.com (compatible con todos los navegadores)</feature>
+      <feature>Fondo2.jpg aplicado globalmente en layouts/app.blade.php — cubre todas las páginas del portal de usuario automáticamente</feature>
+      <feature>Secciones de catálogos con fondo semi-transparente (backdrop-blur-sm) para mostrar la imagen de fondo preservando la legibilidad</feature>
+      <feature>Corrección de contraste de fuentes: breadcrumb, encabezado de perfil y pestañas usan colores claros (parchment/gold) sobre la imagen de fondo</feature>
+    </implemented_features>
+
+    <pending_items>
+      <item priority="medium">
+        Archivos eliminados del git index (git status muestra D en archivos de GUIAS/
+        y database/). Evaluar si estos archivos deben ser restaurados o si su
+        eliminación fue intencional. Archivos afectados:
+        - GUIAS/COMANDOS PARA MYSQL PARA LA CREACION DE LA BD.sql
+        - GUIAS/ConexionaBD.txt
+        - GUIAS/Usuarios predeterminados del sistema.sql
+        - database/biblioteca_alejandria.sql
+      </item>
+      <item priority="low">
+        Carpeta Recursos_Generales/ aparece como no rastreada en git (??).
+        Determinar si debe agregarse al repositorio o añadirse a .gitignore.
+      </item>
+      <item priority="low">
+        El email de confirmación usa MAIL_MAILER=log en desarrollo. Para envío real a usuarios,
+        configurar MAIL_MAILER=smtp con credenciales de Mailgun, Resend, Gmail u otro proveedor.
+      </item>
+      <item priority="low">
+        El estado 'overdue' se asigna manualmente. No hay proceso automático
+        (cron/scheduled task) que detecte préstamos vencidos y los marque.
+      </item>
+      <item priority="low">
+        No existe funcionalidad de búsqueda por texto libre en el catálogo.
+        Solo se puede filtrar por categoría o autor.
+      </item>
+      <item priority="low">
+        Las pruebas automatizadas (tests/) existen pero no se conoce el nivel
+        de cobertura actual. Verificar con: php artisan test --coverage
+      </item>
+    </pending_items>
+
+    <architectural_notes>
+      <note>
+        El paquete simplesoftwareio/simple-qrcode v4 puede requerir la extensión
+        PHP 'imagick' o 'gd' habilitada. Verificar en caso de error al generar QR.
+      </note>
+      <note>
+        La paleta de colores de Tailwind v4 con tokens custom puede generar
+        conflictos si se intenta usar el namespace 'background', 'primary' o
+        'text' directamente en Tailwind (son tokens reservados). Por eso los
+        alias semánticos están en :root y se usan con sintaxis bg-(--color-X).
+      </note>
+      <note>
+        El campo 'año' en books es redundante (duplica información de published_at).
+        En una refactorización futura podría eliminarse y calcularse on-the-fly.
+      </note>
+    </architectural_notes>
+  </current_status_and_todos>
+
+</ai_master_context>

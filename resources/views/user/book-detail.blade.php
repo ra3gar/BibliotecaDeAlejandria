@@ -7,12 +7,12 @@
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lib-animate">
 
     {{-- Breadcrumb --}}
-    <nav class="flex items-center gap-2 text-sm text-sepia-400 mb-6">
-        <a href="{{ route('catalogo') }}" class="hover:text-gold-600 transition-colors duration-200">Catálogo</a>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <nav class="flex items-center gap-2 text-sm text-parchment-300 mb-6">
+        <a href="{{ route('catalogo') }}" class="hover:text-gold-400 transition-colors duration-200">Catálogo</a>
+        <svg class="w-4 h-4 text-parchment-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
-        <span class="text-sepia-600 truncate max-w-xs">{{ $book->title }}</span>
+        <span class="text-parchment-100 font-medium truncate max-w-xs">{{ $book->title }}</span>
     </nav>
 
     <div class="bg-parchment-50 border border-parchment-300 rounded-2xl shadow-sm overflow-hidden">
@@ -74,38 +74,215 @@
                 </div>
                 @endif
 
-                {{-- Reserve action --}}
-                @if($book->isAvailable())
-                <div class="mb-6">
-                    @if(session('success'))
-                        <div class="mb-3 px-4 py-2 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
-                            {{ session('success') }}
+                {{-- Mensajes de sesión --}}
+                @if(session('success'))
+                    <div class="mb-4 px-4 py-2 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
+                        {{ session('success') }}
+                    </div>
+                @endif
+                @if(session('error'))
+                    <div class="mb-4 px-4 py-2 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
+                {{-- Bloque de acción principal --}}
+                @if($userLoan)
+
+                    {{-- El usuario ya tiene una reserva de este libro --}}
+                    @if($userLoan->status === 'pending')
+                    <div class="mb-6" x-data="{ verQr: false, confirmarCancelacion: false }">
+                        {{-- Estado de la reserva --}}
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                                <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+                                Reserva pendiente de retiro
+                            </span>
                         </div>
-                    @endif
-                    @if(session('error'))
-                        <div class="mb-3 px-4 py-2 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-                            {{ session('error') }}
+
+                        {{-- Formulario de cancelación (oculto, se envía desde el modal) --}}
+                        <form id="form-cancelar" method="POST" action="{{ route('loans.cancel', $userLoan) }}">
+                            @csrf
+                            @method('DELETE')
+                        </form>
+
+                        {{-- Botones: Ver QR y Cancelar --}}
+                        <div class="flex flex-wrap gap-3 mb-4">
+                            <button type="button" @click="verQr = !verQr" class="btn-primary">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                </svg>
+                                <span x-text="verQr ? 'Ocultar QR' : 'Ver mi QR'"></span>
+                            </button>
+
+                            <button type="button" @click="confirmarCancelacion = true" class="btn-danger">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                                Cancelar reserva
+                            </button>
                         </div>
+
+                        {{-- Modal de confirmación de cancelación --}}
+                        <div x-show="confirmarCancelacion"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0"
+                             x-transition:enter-end="opacity-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100"
+                             x-transition:leave-end="opacity-0"
+                             class="fixed inset-0 z-50 flex items-center justify-center px-4"
+                             style="display:none;">
+                            <div class="absolute inset-0 bg-mahogany-950/60 backdrop-blur-sm"
+                                 @click="confirmarCancelacion = false"></div>
+                            <div x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 scale-95"
+                                 x-transition:enter-end="opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-150"
+                                 x-transition:leave-start="opacity-100 scale-100"
+                                 x-transition:leave-end="opacity-0 scale-95"
+                                 class="relative w-full max-w-md bg-parchment-50 rounded-2xl shadow-xl border border-parchment-300 p-6">
+                                <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mx-auto mb-4">
+                                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </div>
+                                <h2 class="text-center text-lg font-serif font-semibold text-mahogany-900 mb-2">
+                                    ¿Cancelar la reserva?
+                                </h2>
+                                <p class="text-center text-sm text-sepia-600 mb-1">
+                                    Estás a punto de cancelar tu reserva de:
+                                </p>
+                                <p class="text-center text-sm font-semibold text-mahogany-900 mb-5 leading-snug">
+                                    "{{ $book->title }}"
+                                </p>
+                                <p class="text-center text-xs text-sepia-400 mb-6">
+                                    El libro quedará disponible nuevamente para otros usuarios.
+                                </p>
+                                <div class="flex gap-3">
+                                    <button type="button" @click="confirmarCancelacion = false"
+                                            class="btn-ghost flex-1 justify-center">
+                                        Volver
+                                    </button>
+                                    <button type="submit" form="form-cancelar"
+                                            class="btn-danger flex-1 justify-center">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                        Sí, cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Panel QR colapsable --}}
+                        <div x-show="verQr"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 -translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             class="bg-parchment-100 border border-parchment-300 rounded-2xl p-5 text-center"
+                             style="display:none;">
+                            <p class="text-xs font-semibold text-sepia-500 uppercase tracking-wide mb-3">
+                                Código QR — Préstamo #{{ $userLoan->id }}
+                            </p>
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data={{ urlencode(route('admin.loans.show', $userLoan)) }}"
+                                 alt="QR préstamo #{{ $userLoan->id }}"
+                                 width="180" height="180"
+                                 class="mx-auto rounded-xl shadow-sm">
+                            <p class="text-xs text-sepia-400 mt-3">
+                                Preséntalo en la biblioteca para retirar el libro
+                            </p>
+                        </div>
+                    </div>
+
+                    @elseif($userLoan->status === 'active')
+                    <div class="mb-6">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                            Libro en tu poder — devuélvelo en la biblioteca cuando termines
+                        </span>
+                    </div>
                     @endif
-                    <form method="POST" action="{{ route('books.reserve', $book) }}">
-                        @csrf
-                        <button type="submit" class="btn-primary">
+
+                @elseif($book->isAvailable())
+
+                    {{-- Sin reserva previa: mostrar botón de reserva con modal --}}
+                    <div class="mb-6" x-data="{ abierto: false }">
+                        <form id="form-reserva" method="POST" action="{{ route('books.reserve', $book) }}">
+                            @csrf
+                        </form>
+
+                        <button type="button" @click="abierto = true" class="btn-primary">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                       d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
                             </svg>
                             Reservar este libro
                         </button>
-                    </form>
-                </div>
-                @else
-                <div class="mb-6">
-                    @if(session('error'))
-                        <div class="px-4 py-2 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-                            {{ session('error') }}
+
+                        {{-- Modal de confirmación --}}
+                        <div x-show="abierto"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0"
+                             x-transition:enter-end="opacity-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100"
+                             x-transition:leave-end="opacity-0"
+                             class="fixed inset-0 z-50 flex items-center justify-center px-4"
+                             style="display:none;">
+                            <div class="absolute inset-0 bg-mahogany-950/60 backdrop-blur-sm"
+                                 @click="abierto = false"></div>
+                            <div x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 scale-95"
+                                 x-transition:enter-end="opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-150"
+                                 x-transition:leave-start="opacity-100 scale-100"
+                                 x-transition:leave-end="opacity-0 scale-95"
+                                 class="relative w-full max-w-md bg-parchment-50 rounded-2xl shadow-xl border border-parchment-300 p-6">
+                                <div class="flex items-center justify-center w-12 h-12 rounded-full bg-gold-500/15 mx-auto mb-4">
+                                    <svg class="w-6 h-6 text-gold-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                                    </svg>
+                                </div>
+                                <h2 class="text-center text-lg font-serif font-semibold text-mahogany-900 mb-2">
+                                    ¿Confirmar reserva?
+                                </h2>
+                                <p class="text-center text-sm text-sepia-600 mb-1">Estás a punto de reservar:</p>
+                                <p class="text-center text-sm font-semibold text-mahogany-900 mb-5 leading-snug">
+                                    "{{ $book->title }}"
+                                </p>
+                                <p class="text-center text-xs text-sepia-400 mb-6">
+                                    Recibirás un QR por correo electrónico para retirar el libro en la biblioteca.
+                                </p>
+                                <div class="flex gap-3">
+                                    <button type="button" @click="abierto = false" class="btn-ghost flex-1 justify-center">
+                                        Cancelar
+                                    </button>
+                                    <button type="submit" form="form-reserva" class="btn-primary flex-1 justify-center">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        Sí, confirmar
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    @endif
-                </div>
+                    </div>
+
+                @else
+                    {{-- Sin stock --}}
+                    <div class="mb-6">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                            Sin copias disponibles en este momento
+                        </span>
+                    </div>
                 @endif
 
                 {{-- Technical details --}}
@@ -146,9 +323,12 @@
     {{-- Authors section --}}
     @if($book->authors->isNotEmpty())
     <div class="mt-6">
-        <h2 class="text-sm font-semibold text-sepia-500 uppercase tracking-wide mb-3">
-            {{ $book->authors->count() === 1 ? 'Acerca del autor' : 'Acerca de los autores' }}
-        </h2>
+        <div class="inline-flex items-center gap-3 mb-3 bg-mahogany-950/70 backdrop-blur-sm px-4 py-2 rounded-xl">
+            <div class="w-1 h-5 rounded-full bg-gold-500 shrink-0"></div>
+            <h2 class="text-sm font-semibold text-parchment-100 uppercase tracking-wide">
+                {{ $book->authors->count() === 1 ? 'Acerca del autor' : 'Acerca de los autores' }}
+            </h2>
+        </div>
         <div class="space-y-4 lib-stagger">
             @foreach($book->authors as $author)
             <div class="bg-parchment-50 border border-parchment-300 rounded-2xl shadow-sm p-5 flex gap-5">
@@ -185,7 +365,7 @@
     {{-- Back button --}}
     <div class="mt-6">
         <a href="{{ route('catalogo') }}"
-           class="inline-flex items-center gap-2 text-sm text-sepia-500 hover:text-gold-600 transition-colors duration-200">
+           class="inline-flex items-center gap-2 text-sm text-gold-400 hover:text-gold-300 transition-colors duration-200">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>

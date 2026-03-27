@@ -1,0 +1,326 @@
+====================================================================
+  GUÍA TÉCNICA — API DE GENERACIÓN DE CÓDIGOS QR
+  Biblioteca de Alejandría — Sistema de Préstamos Híbrido
+  Universidad UPED 2026 — Programación Aplicada 1
+  Fecha: 2026-03-27
+====================================================================
+
+Esta guía explica cómo funciona la API externa que usa el sistema
+para generar los códigos QR de confirmación de reserva, tanto en
+la interfaz web (perfil y detalle de libro) como en el email
+automático que se envía al usuario al reservar.
+
+--------------------------------------------------------------------
+¿QUÉ ES LA API Y POR QUÉ SE USA?
+--------------------------------------------------------------------
+
+El sistema usa el servicio GRATUITO de goQR.me, disponible en:
+
+    https://api.qrserver.com/v1/create-qr-code/
+
+Es una API pública y de acceso libre que genera imágenes PNG de
+códigos QR a partir de cualquier texto o URL que se le pase.
+No requiere registro, no requiere API key y no tiene límite
+de uso para proyectos de baja escala.
+
+¿Por qué no usamos el paquete PHP simple-qrcode que ya está
+instalado en el proyecto?
+
+  El paquete simplesoftwareio/simple-qrcode v4 puede generar
+  QR en dos formatos: SVG y PNG. Para SVG no necesita nada
+  especial. Para PNG requiere la extensión PHP llamada "imagick"
+  (ImageMagick). En el entorno de desarrollo de este proyecto
+  la extensión "imagick" NO está instalada (solo está "gd").
+
+  Sin imagick, el paquete solo genera SVG. El SVG funciona en
+  el navegador, pero en los emails HTML los clientes de correo
+  (Gmail, Outlook, Thunderbird) NO renderizan SVG inline por
+  razones de seguridad — solo aceptan imágenes PNG/JPG.
+
+  Usando la API externa obtenemos PNG directamente sin instalar
+  nada adicional.
+
+
+--------------------------------------------------------------------
+¿CÓMO FUNCIONA LA API? — CONCEPTO BÁSICO
+--------------------------------------------------------------------
+
+La API funciona como una URL dinámica. El navegador o el cliente
+de correo simplemente hace una petición HTTP GET a esa URL y
+recibe una imagen PNG del QR como respuesta.
+
+No hay autenticación, no hay JSON, no hay JavaScript necesario.
+Es tan simple como poner la URL en un tag <img>.
+
+Ejemplo conceptual (NO usar esta URL directamente):
+
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=TEXTO_A_CODIFICAR">
+
+
+--------------------------------------------------------------------
+PARÁMETROS DE LA URL — REFERENCIA COMPLETA
+--------------------------------------------------------------------
+
+La URL base siempre es:
+    https://api.qrserver.com/v1/create-qr-code/
+
+Parámetros disponibles (se pasan como query string después del ?):
+
+  Parámetro     Tipo      Descripción
+  ─────────────────────────────────────────────────────────────────
+  data          string    REQUERIDO. El texto o URL que el QR codifica.
+                          Si contiene caracteres especiales (/, :, &, =)
+                          DEBE codificarse con urlencode() o encodeURIComponent.
+
+  size          string    Dimensiones de la imagen generada en píxeles.
+                          Formato: "ANCHOxALTO" (ancho x alto).
+                          Ejemplo: "140x140" genera un QR de 140×140 px.
+                          Recomendado: mínimo 100x100. El ideal para
+                          imprimir o mostrar en pantalla es 200x200 o más.
+
+  margin        int       Margen en módulos (celdas QR) alrededor del código.
+                          Default: 1 (un módulo blanco de borde).
+                          Recomendado: 4-8 para facilitar el escaneo.
+
+  format        string    Formato de la imagen devuelta.
+                          Valores posibles: png (default), svg, eps, gif.
+                          Para emails y compatibilidad general: siempre "png".
+
+  color         string    Color de los módulos (cuadraditos) del QR.
+                          Formato: "R-G-B" con valores 0-255.
+                          Default: "0-0-0" (negro).
+                          Ejemplo: "28-20-16" para el color mahogany del sistema.
+
+  bgcolor       string    Color del fondo del QR.
+                          Formato: "R-G-B".
+                          Default: "255-255-255" (blanco).
+
+  ecc           string    Nivel de corrección de errores. Define cuánto
+                          daño físico puede tolerar el QR y seguir siendo
+                          leído correctamente.
+                          Valores: L (7%), M (15%), Q (25%), H (30%).
+                          Default: L. Para uso en pantalla es suficiente.
+                          Usar H si el QR va a imprimirse o puede estar dañado.
+
+  qzone         int       Equivalente a "margin" en versiones antiguas.
+                          Usar "margin" en su lugar (más estándar).
+
+
+--------------------------------------------------------------------
+CÓMO SE USA EN ESTE PROYECTO
+--------------------------------------------------------------------
+
+El sistema genera el QR en tres lugares diferentes. Todos codifican
+la misma URL: la dirección del detalle del préstamo en el panel admin
+(/admin/loans/{id}). Al escanear el QR, el administrador llega
+directamente al préstamo correcto.
+
+── 1. En el perfil del usuario (resources/views/user/profile.blade.php) ──
+
+  Tamaño: 140×140 px
+  Margen: 6 módulos
+
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=6&data={{ urlencode(route('admin.loans.show', $loan)) }}"
+       alt="QR préstamo #{{ $loan->id }}"
+       width="140" height="140">
+
+  Se muestra dentro del panel colapsable "Ver QR" en la tabla de
+  préstamos pendientes. Solo aparece si el préstamo tiene status='pending'.
+
+
+── 2. En el detalle del libro (resources/views/user/book-detail.blade.php) ──
+
+  Tamaño: 180×180 px
+  Margen: 8 módulos
+
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data={{ urlencode(route('admin.loans.show', $userLoan)) }}"
+       alt="QR préstamo #{{ $userLoan->id }}"
+       width="180" height="180">
+
+  Se muestra en el panel colapsable "Ver mi QR" en la ficha del libro
+  cuando el usuario ya tiene una reserva pendiente de ese libro.
+
+
+── 3. En el email de confirmación (resources/views/emails/reserva-confirmada.blade.php) ──
+
+  Tamaño: 180×180 px
+  Margen: 8 módulos
+
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data={{ urlencode(route('admin.loans.show', $loan)) }}"
+       alt="Tu código QR de reserva"
+       width="180" height="180">
+
+  Se incrusta en el email HTML como etiqueta <img> con URL remota.
+  El cliente de correo del usuario descarga la imagen directamente
+  desde api.qrserver.com cuando abre el email.
+
+
+--------------------------------------------------------------------
+¿QUÉ DATO CODIFICA EL QR?
+--------------------------------------------------------------------
+
+Los tres QR del sistema codifican la misma URL:
+
+    http://localhost:8000/admin/loans/{id}
+
+Donde {id} es el ID del préstamo (registro en la tabla loans).
+
+En producción, localhost:8000 se reemplaza por la URL real del servidor
+(la variable APP_URL del archivo .env).
+
+Esta URL lleva al administrador directamente a la pantalla de detalle
+del préstamo (/admin/loans/show) desde donde puede:
+  - Ver los datos del usuario y el libro reservado
+  - Hacer clic en "Confirmar entrega" (pending → active)
+  - Ver el historial y estado del préstamo
+
+El qr_token (campo en la tabla loans) es un UUID único generado con
+Str::uuid() al crear el préstamo. NO es lo que se codifica en el QR —
+el token es una columna interna de seguridad. Lo que el QR codifica
+es la URL completa a la ruta admin.loans.show.
+
+
+--------------------------------------------------------------------
+¿POR QUÉ SE USA urlencode()?
+--------------------------------------------------------------------
+
+La URL del préstamo contiene caracteres como ://, /, ? y = que tienen
+significado especial en una URL (son parte de la sintaxis HTTP).
+
+Si se pasa tal cual dentro del parámetro ?data=..., la API no puede
+distinguir los delimitadores de la URL base de los que forman parte
+del dato. Por eso se usa urlencode() para escapar todos esos
+caracteres antes de insertarlos en el parámetro.
+
+Ejemplo sin urlencode (INCORRECTO):
+    ?data=http://localhost:8000/admin/loans/7
+    (la / y : rompen el parsing del query string)
+
+Ejemplo con urlencode (CORRECTO):
+    ?data=http%3A%2F%2Flocalhost%3A8000%2Fadmin%2Floans%2F7
+    (todos los caracteres especiales están codificados con %)
+
+En PHP, la función urlencode() hace esta conversión automáticamente.
+En Blade, se usa directamente dentro de la doble llave:
+
+    {{ urlencode(route('admin.loans.show', $loan)) }}
+
+
+--------------------------------------------------------------------
+FLUJO COMPLETO: DE LA RESERVA AL QR EN EL EMAIL
+--------------------------------------------------------------------
+
+1. El usuario hace clic en "Reservar este libro" en /libros/{id}.
+   → Se abre el modal de confirmación Alpine.js.
+
+2. El usuario confirma. El formulario hace POST a /libros/{book}/reservar.
+   → User\LoanController@store recibe la petición.
+
+3. El controlador verifica:
+   - Que el libro tiene stock disponible (available_copies > 0)
+   - Que el usuario no tiene ya una reserva pending o active del mismo libro
+   - Que el usuario cumple la edad mínima del libro (si aplica)
+
+4. Si todas las validaciones pasan, se crea el registro en la tabla loans:
+   - status = 'pending'
+   - qr_token = Str::uuid() (ej: "a3f1c29e-7b4d-4e8a-98b2-...")
+   - loan_date = fecha de hoy
+   - available_copies del libro se decrementa en 1
+
+5. Se cargan las relaciones necesarias para el email:
+   $loan->load(['user', 'book.authors'])
+
+6. Se encola el mailable:
+   Mail::to($user->email)->queue(new ReservaConfirmadaMail($loan))
+
+7. El worker queue:listen (que corre con composer dev) toma el job
+   de la cola y ejecuta el envío del email.
+
+8. Laravel renderiza la vista emails/reserva-confirmada.blade.php.
+   En esa vista, el tag <img> con la URL de api.qrserver.com queda
+   escrito literalmente en el HTML del email.
+
+9. El email llega al usuario. Cuando lo abre, su cliente de correo
+   descarga la imagen PNG del QR desde api.qrserver.com en ese momento.
+   El QR se muestra en el email.
+
+10. El usuario va a la biblioteca y muestra el QR en la pantalla
+    del teléfono o en el email.
+    El administrador escanea el QR → el escáner abre la URL codificada
+    → el administrador llega a /admin/loans/{id} → confirma la entrega.
+
+
+--------------------------------------------------------------------
+CONSIDERACIONES IMPORTANTES
+--------------------------------------------------------------------
+
+  Conexión a internet requerida
+    La imagen del QR se descarga en tiempo real desde api.qrserver.com.
+    Si el usuario no tiene conexión al abrir el email, el QR no se
+    muestra (imagen rota). En el navegador web, el QR del perfil y
+    del detalle de libro también requieren conexión.
+
+    Para uso offline, la alternativa sería pre-generar los QR con
+    el paquete simple-qrcode y guardarlos en el storage — requeriría
+    instalar imagick o usar un método GD personalizado.
+
+  Privacidad de datos
+    La URL que se codifica en el QR apunta a una ruta protegida
+    (/admin/loans/{id}) que requiere autenticación como admin.
+    Un tercero que escanee el QR solo verá la pantalla de login,
+    no los datos del préstamo.
+
+  Disponibilidad del servicio externo
+    api.qrserver.com es un servicio gratuito administrado por
+    goQR.me. Si el servicio tiene caída (raro pero posible), los
+    QR no se mostrarán. Para un entorno de producción crítico
+    se recomienda usar generación local (con imagick habilitado)
+    o un servicio de QR de pago con SLA garantizado.
+
+  Límites de la API
+    No requiere API key ni registro. No hay límite documentado
+    para proyectos de bajo tráfico. Para proyectos con miles de
+    usuarios concurrentes, verificar los términos en goQR.me.
+
+
+--------------------------------------------------------------------
+DIFERENCIA ENTRE QR EN WEB Y QR EN EMAIL
+--------------------------------------------------------------------
+
+  En la WEB (perfil y detalle de libro):
+    El <img> con la URL de api.qrserver.com carga directamente
+    en el navegador. La imagen se descarga cuando el usuario
+    abre la página o expande el panel QR.
+
+  En el EMAIL:
+    El <img> con la URL de api.qrserver.com queda escrito en
+    el HTML del email. La imagen NO se descarga en el momento
+    de enviar el email — se descarga cuando el DESTINATARIO
+    ABRE el email en su cliente de correo.
+    Si el usuario tiene bloqueada la descarga de imágenes
+    externas (opción común en algunos clientes de correo
+    corporativos), el QR no se verá hasta que el usuario
+    autorice las imágenes del remitente.
+
+
+--------------------------------------------------------------------
+REFERENCIA RÁPIDA — URLS USADAS EN EL PROYECTO
+--------------------------------------------------------------------
+
+Perfil del usuario (profile.blade.php):
+  https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=6&data=URL_PRESTAMO
+
+Detalle del libro (book-detail.blade.php):
+  https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=URL_PRESTAMO
+
+Email de confirmación (emails/reserva-confirmada.blade.php):
+  https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=URL_PRESTAMO
+
+Donde URL_PRESTAMO es el resultado de:
+  urlencode(route('admin.loans.show', $loan))
+  → Ejemplo codificado: http%3A%2F%2Flocalhost%3A8000%2Fadmin%2Floans%2F7
+
+
+====================================================================
+  Biblioteca de Alejandría | Universidad UPED 2026
+====================================================================

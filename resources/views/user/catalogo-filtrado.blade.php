@@ -2,12 +2,6 @@
 
 @section('title', $pageTitle . ' — Biblioteca de Alejandría')
 
-@push('page-styles')
-<style>
-    body { background-image: url('{{ asset('images/Fondo2.jpg') }}'); background-size: cover; background-attachment: fixed; background-position: center; }
-</style>
-@endpush
-
 @section('content')
 
 {{-- Header de resultados --}}
@@ -30,7 +24,7 @@
 </section>
 
 {{-- Grid de libros filtrados --}}
-<section class="py-12 bg-parchment-100">
+<section class="py-12 bg-parchment-50/80 backdrop-blur-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         @if($books->isEmpty())
@@ -95,7 +89,7 @@
 </section>
 
 {{-- Explorar por Categoría --}}
-<section class="py-14 bg-parchment-100 border-t border-parchment-300">
+<section class="py-14 bg-parchment-50/80 backdrop-blur-sm border-t border-parchment-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center gap-4 mb-7">
             <div class="w-1 h-7 rounded-full bg-gold-500"></div>
@@ -128,7 +122,7 @@
 </section>
 
 {{-- Explorar por Autor --}}
-<section class="py-14 bg-parchment-200">
+<section class="py-14 bg-parchment-100/80 backdrop-blur-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center gap-4 mb-7">
             <div class="w-1 h-7 rounded-full bg-gold-500"></div>

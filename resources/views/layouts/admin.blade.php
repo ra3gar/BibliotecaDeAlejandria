@@ -46,7 +46,7 @@
                  style="filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));">
             <div class="min-w-0">
                 <p class="font-serif font-semibold text-parchment-100 text-sm leading-tight">Biblioteca de Alejandría</p>
-                <p class="text-xs mt-0.5" style="color: rgba(90,72,56,0.8);">Panel de administración</p>
+                <p class="text-xs mt-0.5 text-gold-400">Panel de administración</p>
             </div>
         </div>
 
@@ -67,7 +67,7 @@
 
             {{-- Sección: Mantenimientos --}}
             <div class="pt-4 pb-1.5 px-3">
-                <p class="text-xs font-semibold uppercase tracking-widest" style="color: rgba(90,72,56,0.6);">
+                <p class="text-xs font-semibold uppercase tracking-widest text-gold-400/70">
                     Mantenimientos
                 </p>
             </div>
@@ -100,7 +100,7 @@
                 </div>
                 <div class="min-w-0">
                     <p class="text-sm font-medium text-parchment-100 truncate">{{ auth()->user()->full_name }}</p>
-                    <p class="text-xs" style="color: rgba(90,72,56,0.8);">Administrador</p>
+                    <p class="text-xs text-gold-400">Administrador</p>
                 </div>
             </div>
             <form method="POST" action="{{ route('logout') }}">
