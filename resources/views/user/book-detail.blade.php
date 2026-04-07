@@ -349,7 +349,10 @@
                 </div>
                 {{-- Info --}}
                 <div class="min-w-0">
-                    <p class="font-serif font-semibold text-mahogany-900">{{ $author->full_name }}</p>
+                    <a href="{{ route('catalogo.autor', $author) }}"
+                       class="font-serif font-semibold text-mahogany-900 hover:text-gold-700 transition-colors duration-200">
+                        {{ $author->full_name }}
+                    </a>
                     @if($author->bio)
                         <p class="mt-1 text-sm text-sepia-600 leading-relaxed">{{ $author->bio }}</p>
                     @else

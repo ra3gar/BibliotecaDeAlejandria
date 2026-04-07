@@ -33,14 +33,9 @@ class CatalogoController extends Controller
 
     public function byAuthor(Author $author): View
     {
-        $books = $author->books()->with('authors', 'category')->get();
+        $author->load('books.category', 'books.authors');
 
-        return view('user.catalogo-filtrado', [
-            'books'      => $books,
-            'pageTitle'  => 'Libros de ' . $author->full_name,
-            'categories' => Category::withCount('books')->get(),
-            'authors'    => Author::withCount('books')->get(),
-        ]);
+        return view('user.autor-detalle', compact('author'));
     }
 
     public function show(Book $book): View
